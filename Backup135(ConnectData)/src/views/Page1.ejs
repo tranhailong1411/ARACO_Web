@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chart.js Example</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css"
+    />
+    <style>
+      .content {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        padding: 20px;
+      }
+
+      .box {
+        width: 300px;
+        margin: 5px;
+        padding: 10px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s, opacity 0.3s;
+      }
+
+      .box:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .box img {
+        width: 100%;
+        height: auto;
+        border-radius: 5px;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .fade-in {
+        animation: fadeIn 1s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateY(-50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .slide-in {
+        animation: slideIn 0.5s ease-out;
+      }
+      .box img {
+        width: 100%;
+        height: 200px; /* hoặc bất kỳ chiều cao nào bạn muốn */
+        object-fit: cover; /* để ảnh không bị bể */
+      }
+      .shift-left {
+        margin-left: -10px;
+      }
+      body {
+        background-color: #f8f9fa; /* M??�ｿｽ�ｿｽ?�ｿｽ�ｿｽ??u xanh d??�ｿｽ�ｿｽ?�ｿｽ�ｿｽ???�ｿｽ�ｿｽ?�ｿｽ�ｿｽ?�ｿｽ�ｿｽ?�ｿｽ�ｿｽ??�ｿｽ�ｿｽ?�ｿｽ�ｿｽ???�ｿｽ�ｿｽ?�ｿｽ�ｿｽ?�ｿｽ�ｿｽ?�ｿｽ�ｿｽng */
+      }
+      .close-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 20px;
+        background-color: red;
+        /* cursor: pointer; */
+      }
+      .popup {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+        background-color: white;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+        animation: fadeIn 0.3s ease forwards;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      /* CSS cho overlay */
+      .overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9998;
+        animation: fadeInOverlay 0.3s ease forwards;
+      }
+
+      @keyframes fadeInOverlay {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      /* CSS cho popupChartContainer */
+      #popupChartContainer {
+        display: none;
+        position: fixed;
+        top: 350px;
+        left: 630px;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+        background-color: white;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+        animation: fadeIn 0.3s ease forwards;
+      }
+      .menu {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #333;
+        text-align: center;
+      }
+
+      .menu li {
+        display: inline-block;
+      }
+
+      .menu li a {
+        display: block;
+        color: white;
+        text-align: center;
+        padding: 14px 20px;
+        text-decoration: none;
+      }
+
+      .menu li a:hover {
+        background-color: #f8f9fa;
+      }
+      .card {
+        background-color: #f8f9fa;
+        color: white;
+      }
+      .button-group {
+        position: absolute;
+        top: 400px;
+        right: 30px;
+        transform: translateY(-50%);
+      }
+
+      .button {
+        display: block;
+        margin-bottom: 30px;
+        padding: 20px 40px;
+        background-color: white;
+        color: black;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        font-size: 16px;
+        width: 150px; /* Đặt chiều rộng của nút */
+        height: 75px; /* Đặt chiều cao của nút */
+      }
+      .button.disabled {
+        background-color: aqua;
+        cursor: not-allowed;
+      }
+
+      .button-group button:last-child {
+        margin-bottom: 0;
+      }
+
+      #customers td,
+      #customers th {
+        border: 1px solid #ddd;
+        padding: 8px;
+      }
+      #customers {
+        font-family: Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+      }
+      #customers tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      #customers tr:hover {
+        background-color: #ddd;
+      }
+      #customers th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: #04aa6d;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="overlay" class="overlay">
+      <div class="button-group">
+        <button id="button1" class="button" style="font-weight: bold;" disabled>
+          Frライン停止
+        </button>
+        <button id="button2" class="button" style="font-weight: bold;" disabled>
+          Fr作業遅れ
+        </button>
+        <button id="button3" class="button" style="font-weight: bold;" disabled>
+          Fr呼出
+        </button>
+        <button id="button4" class="button" style="font-weight: bold;" disabled>
+          Frポカヨケ
+        </button>
+        <button id="button5" class="button" style="font-weight: bold;" disabled>
+          Fr締付異常
+        </button>
+        <button id="button6" class="button" style="font-weight: bold;" disabled>
+          Fr設備異常
+        </button>
+      </div>
+    </div>
+    <div id="popupChartContainer" class="popup" style="margin-top: 80px;">
+      <span id="chartTitle" style="margin-left: 540px; font-size: 30px;"></span>
+      <button id="closeButton" class="close-button">x</button>
+      <canvas id="popupChart"> </canvas>
+    </div>
+
+    <ul class="menu">
+      <li>
+        <a href="#home" onclick="router('/')"
+          ><i class="fas fa-home"></i> Home</a
+        >
+      </li>
+      <li>
+        <a href="#news"><i class="fas fa-newspaper"></i> News</a>
+      </li>
+      <li>
+        <a href="#contact"><i class="fas fa-address-book"></i> Contact</a>
+      </li>
+      <li>
+        <a href="#about"><i class="fas fa-info-circle"></i> About</a>
+      </li>
+      <li>
+        <a href="#settings"><i class="fas fa-cog"></i> Settings</a>
+      </li>
+    </ul>
+
+    <div class="container" style="margin-right: 80px;">
+      <div class="row my-3">
+        <div class="col-md-4 py-1">
+          <div
+            class="card mt-2"
+            style="width: 145%; overflow: auto; margin-left: -157px;"
+          >
+            <table
+              id="customers"
+              class="table"
+              style="border: 5px solid black;"
+            >
+              <thead>
+                <tr>
+                  <th scope="col" style="border-color: black;">ライン停止</th>
+                  <th scope="col" style="border-color: black;">作業遅れ</th>
+                  <th scope="col" style="border-color: black;">呼出</th>
+                  <th scope="col" style="border-color: black;">ポカヨケ</th>
+                  <th scope="col" style="border-color: black;">締付異常</th>
+                  <th scope="col" style="border-color: black;">設備異常</th>
+                </tr>
+              </thead>
+              <tbody id="summaryTableBody">
+                <tr>
+                  <td id="ライン停止" style="border-color: black;">15 分</td>
+                  <td id="作業遅れ" style="border-color: black;">30 分</td>
+                  <td id="呼出" style="border-color: black;">20 分</td>
+                  <td id="ポカヨケ" style="border-color: black;">27 分</td>
+                  <td id="締付異常" style="border-color: black;">39 分</td>
+                  <td id="設備異常" style="border-color: black;">8 分</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div
+            class="card mt-2"
+            style="margin-top: 60px; margin-bottom: 30px; border-color: black;"
+          >
+            <div class="card-body">
+              <h5 class="card-title" style="color: black;">日付</h5>
+              <input
+                type="text"
+                id="datepicker"
+                class="form-control"
+                placeholder=""
+              />
+            </div>
+          </div>
+          <div
+            class="card mt-2 col-md-12"
+            style="margin-bottom: 30px; border-color: black;"
+          >
+            <div class="card-body">
+              <h5 class="card-title" style="color: black;">直</h5>
+              <select id="chartSelector1" class="form-control">
+                <option value="1">前直</option>
+                <option value="2">後直</option>
+              </select>
+            </div>
+          </div>
+          <div
+            class="card mt-2 col-md-12"
+            style="margin-bottom: 30px; border-color: black;"
+          >
+            <div class="card-body">
+              <h5 class="card-title" style="color: black;">位置</h5>
+              <select id="chartSelector3" class="form-control">
+                <option value="1">フロント</option>
+                <option value="2">サード</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="row">
+            <div class="col-md-6 py-1">
+              <div class="card">
+                <div class="card-body">
+                  <h5
+                    class="card-title"
+                    style="color: black; font-weight: bold; text-align: center;"
+                  >
+                    Frライン停止
+                  </h5>
+                  <div
+                    class="box fade-in"
+                    onclick="drawOnChartArea('button1')"
+                    disable
+                  >
+                    <img src="/image/Graphic1.png" alt="Image 1" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 py-1">
+              <div class="card">
+                <div class="card-body">
+                  <h5
+                    class="card-title black-text"
+                    style="color: black; font-weight: bold; text-align: center;"
+                  >
+                    Fr作業遅れ
+                  </h5>
+                  <div
+                    class="box fade-in"
+                    onclick="drawOnChartArea('button2')"
+                    disable
+                  >
+                    <img src="/image/Graphic1.png" alt="Image 1" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 py-1">
+              <div class="card">
+                <div class="card-body">
+                  <h5
+                    class="card-title black-text"
+                    style="color: black; font-weight: bold; text-align: center;"
+                  >
+                    Fr呼出
+                  </h5>
+                  <div
+                    class="box fade-in"
+                    onclick="drawOnChartArea('button3')"
+                    disable
+                  >
+                    <img src="/image/Graphic1.png" alt="Image 1" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 py-1">
+              <div class="card">
+                <div class="card-body">
+                  <h5
+                    class="card-title black-text"
+                    style="color: black; font-weight: bold; text-align: center;"
+                  >
+                    Frポカヨケ
+                  </h5>
+                  <div
+                    class="box fade-in"
+                    onclick="drawOnChartArea('button4')"
+                    disable
+                  >
+                    <img src="/image/Graphic1.png" alt="Image 1" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 py-1">
+              <div class="card">
+                <div class="card-body">
+                  <h5
+                    class="card-title black-text"
+                    style="color: black; font-weight: bold; text-align: center;"
+                  >
+                    Fr締付異常
+                  </h5>
+                  <div
+                    class="box fade-in"
+                    onclick="drawOnChartArea('button5')"
+                    disable
+                  >
+                    <img src="/image/Graphic1.png" alt="Image 1" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 py-1">
+              <div class="card">
+                <div class="card-body">
+                  <h5
+                    class="card-title black-text"
+                    style="color: black; font-weight: bold; text-align: center;"
+                  >
+                    Fr設備異常
+                  </h5>
+                  <div
+                    class="box fade-in"
+                    onclick="drawOnChartArea('button6')"
+                    disable
+                  >
+                    <img src="/image/Graphic1.png" alt="Image 1" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+    <script>
+      var chart;
+      var foundItems = [];
+      function updatePopupSize() {
+        var popupChartContainer = document.getElementById(
+          "popupChartContainer"
+        );
+        var popupChart = document.getElementById("popupChart");
+        if (popupChartContainer && popupChart) {
+          popupChartContainer.style.width = popupChart.width + 1250 + "px";
+          popupChartContainer.style.height = popupChart.height + 700 + "px";
+        }
+      }
+
+      var buttons = document.querySelectorAll(".button");
+      buttons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          convert(button.id);
+          updateChart(button.id);
+        });
+      });
+      function convert(button) {
+        var chartTitle = document.getElementById("chartTitle");
+        var buttonIds = [
+          "button1",
+          "button2",
+          "button3",
+          "button4",
+          "button5",
+          "button6",
+        ];
+        var chartName = "";
+        if (button === "button1") {
+          chartName = "Frライン停止";
+        } else if (button === "button2") {
+          chartName = "Fr作業遅れ";
+        } else if (button === "button3") {
+          chartName = "Fr呼出";
+        } else if (button === "button4") {
+          chartName = "Frポカヨケ";
+        } else if (button === "button5") {
+          chartName = "Fr締付異常";
+        } else if (button === "button6") {
+          chartName = "Fr設備異常";
+        }
+        chartTitle.innerText = chartName;
+        for (i = 0; i < buttonIds.length; i++) {
+          if (buttonIds[i] === button) {
+            document.getElementById(buttonIds[i]).disabled = true;
+            document.getElementById(buttonIds[i]).classList.add("disabled");
+          } else {
+            document.getElementById(buttonIds[i]).disabled = false;
+            document.getElementById(buttonIds[i]).classList.remove("disabled");
+          }
+        }
+      }
+      function drawOnChartArea(button) {
+        var popupChartContainer = document.getElementById(
+          "popupChartContainer"
+        );
+        var overlay = document.getElementById("overlay");
+        var popupChart = document.getElementById("popupChart");
+        if (popupChartContainer && overlay && popupChart) {
+          var ctx = popupChart.getContext("2d");
+          ctx.clearRect(0, 0, popupChart.width, popupChart.height);
+          var colors = [
+            "#007bff",
+            "#28a745",
+            "#333333",
+            "#c3e6cb",
+            "#dc3545",
+            "#333333",
+            "#28a745",
+          ];
+          var label1 = [
+            "工程1",
+            "工程2",
+            "工程3",
+            "工程4",
+            "工程5",
+            "工程6",
+            "工程7",
+            "工程8",
+            "工程9",
+            "工程10",
+            "工程11",
+            "工程12",
+            "工程13",
+            "工程14",
+            "工程15",
+            "工程16",
+            "工程17",
+            "工程18",
+            "工程19",
+            "工程20",
+            "工程21",
+            "工程22",
+            "工程23",
+            "工程24",
+            "工程計",
+            "M満載",
+            "M欠載",
+            "骨格C/V",
+            "冠せC/V",
+            "メインC/V",
+          ];
+          var label2 = [
+            "工程1",
+            "工程2",
+            "工程3",
+            "工程4",
+            "工程5",
+            "工程6",
+            "工程7",
+            "工程8",
+            "工程9",
+            "工程10",
+            "工程11",
+            "工程12",
+            "工程13",
+            "工程14",
+            "工程15",
+            "工程16",
+            "検査1",
+            "検査2",
+            "検査3",
+            "検査4",
+            "検査5",
+            "検査6",
+            "検査7",
+            "順立1",
+            "順立2",
+            "順立3",
+            "順立4",
+            "順立5",
+            "PAD1",
+            "PAD2",
+            "PAD3",
+            "PAD4",
+            "PAD5",
+          ];
+          var label3 = [
+            "工程1",
+            "工程2",
+            "工程3",
+            "工程4",
+            "工程5",
+            "工程6",
+            "工程7",
+            "工程8",
+            "工程9",
+            "工程10",
+            "工程11",
+            "工程12",
+            "工程13",
+            "工程14",
+            "工程15",
+            "工程16",
+            "工程17",
+            "工程18",
+            "工程19",
+            "工程20",
+            "工程21",
+            "工程22",
+            "工程23",
+            "工程24",
+            "工程25",
+          ];
+          var label4 = [
+            "骨格C/V",
+            "骨格 ミニコン1",
+            "骨格 ミニコン2",
+            "骨格 ミニコン3",
+            " 冠せC/V",
+            " 冠せ ミニコン1",
+            " 冠せ ミニコン2",
+            " 冠せ ミニコン3",
+            "メイン 前ミニコン",
+            "メインC/V",
+            "A/Bシリアル 管理装置",
+            "FB冠せ回流装置",
+            "F/BxF/C 締付け治具",
+            "回流装置 上流側",
+            "回流装置 下流側",
+            "RSE バイパス工程",
+            "検査前搬送",
+            "順建箱投入 回収装置",
+            "検査装置",
+            "出荷搬送 装置",
+          ];
+          var label_temp;
+          var data1 = [];
+          var data2 = [];
+          if (button == "button1") {
+            label_temp = label1;
+          } else if (button == "button2" || button == "button3") {
+            label_temp = label2;
+          } else if (button == "button4" || button == "button5") {
+            label_temp = label3;
+          } else if (button == "button6") {
+            label_temp = label4;
+          }
+          if (button == "button1") {
+            var item_array = [];
+            foundItems.forEach(function (item) {
+              if (item.Position === "停止" || item.Position === "Fr停止") {
+                item_array.push(item);
+              }
+            });
+
+            for (var i = 0; i < item_array.length; i++) {
+              data1.push(item_array[i].DelayCount);
+              data2.push((item_array[i].DelayTime / 60).toFixed(1));
+            }
+          }
+          if (button == "button2") {
+            var item_array = [];
+            foundItems.forEach(function (item) {
+              if (
+                item.Position === "作業遅れ" ||
+                item.Position === "Fr作業遅れ"
+              ) {
+                item_array.push(item);
+              }
+            });
+
+            for (var i = 0; i < item_array.length; i++) {
+              data1.push(item_array[i].DelayCount);
+              data2.push((item_array[i].DelayTime / 60).toFixed(1));
+            }
+          }
+          if (button == "button3") {
+            var item_array = [];
+            foundItems.forEach(function (item) {
+              if (item.Position === "呼出" || item.Position === "Fr呼出") {
+                item_array.push(item);
+              }
+            });
+            for (var i = 0; i < item_array.length; i++) {
+              data1.push(item_array[i].DelayCount);
+              data2.push((item_array[i].DelayTime / 60).toFixed(1));
+            }
+          }
+          if (button == "button4") {
+            var item_array = [];
+            foundItems.forEach(function (item) {
+              if (
+                item.Position === "ポカヨケ" ||
+                item.Position === "Frポカヨケ"
+              ) {
+                item_array.push(item);
+              }
+            });
+
+            for (var i = 0; i < item_array.length; i++) {
+              data1.push(item_array[i].DelayCount);
+              data2.push((item_array[i].DelayTime / 60).toFixed(1));
+            }
+          }
+          if (button == "button5") {
+            var item_array = [];
+            foundItems.forEach(function (item) {
+              if (
+                item.Position === "締付異常" ||
+                item.Position === "Fr締付異常"
+              ) {
+                item_array.push(item);
+              }
+            });
+            for (var i = 0; i < item_array.length; i++) {
+              data1.push(item_array[i].DelayCount);
+              data2.push((item_array[i].DelayTime / 60).toFixed(1));
+            }
+          }
+          if (button == "button6") {
+            var item_array = [];
+            foundItems.forEach(function (item) {
+              if (
+                item.Position === "設備異常" ||
+                item.Position === "Fr設備異常"
+              ) {
+                item_array.push(item);
+              }
+            });
+            for (var i = 0; i < item_array.length; i++) {
+              data1.push(item_array[i].DelayCount);
+              data2.push((item_array[i].DelayTime / 60).toFixed(1));
+            }
+          }
+          if (chart) {
+            chart.destroy();
+          }
+          chart = new Chart(popupChart, {
+            type: "bar",
+            data: {
+              labels: label_temp,
+              datasets: [
+                {
+                  label: "回数",
+                  data: data1,
+                  backgroundColor: colors[0],
+                },
+                {
+                  label: "分",
+                  data: data2,
+                  backgroundColor: colors[1],
+                },
+              ],
+            },
+            options: {
+              plugins: {
+                datalabels: {
+                  anchor: "end",
+                  align: "top",
+                  formatter: function (value, context) {
+                    return value; // Hiển thị giá trị của cột
+                  },
+                },
+              },
+              legend: {
+                position: "bottom",
+                display: true,
+              },
+              scales: {
+                x: {
+                  barPercentage: 0.1,
+                  categoryPercentage: 0.2,
+                },
+                y: {
+                  title: {
+                    display: true,
+                    text: "回数", // Đơn vị của trục tung
+                  },
+                },
+              },
+            },
+            plugins: [ChartDataLabels],
+          });
+          popupChartContainer.style.display = "block";
+          overlay.style.display = "block";
+          updatePopupSize();
+          convert(button);
+        } else {
+          console.error("Khong co do thi phu hop");
+        }
+      }
+
+      var closeButton = document.getElementById("closeButton");
+      if (closeButton) {
+        closeButton.addEventListener("click", function () {
+          var popupChartCanvas = document.getElementById("popupChart");
+          var ctx = popupChartCanvas.getContext("2d");
+          ctx.clearRect(0, 0, popupChartCanvas.width, popupChartCanvas.height);
+          popupChartContainer.style.display = "none";
+          overlay.style.display = "none";
+        });
+      }
+
+      function updateChart(button) {
+        var data1 = [];
+        var data2 = [];
+        var chartLabels1 = [];
+        var chartLabels2 = [];
+        if (button === "button1") {
+          chartLabels1 = [
+            "工程1",
+            "工程2",
+            "工程3",
+            "工程4",
+            "工程5",
+            "工程6",
+            "工程7",
+            "工程8",
+            "工程9",
+            "工程10",
+            "工程11",
+            "工程12",
+            "工程13",
+            "工程14",
+            "工程15",
+            "工程16",
+            "工程17",
+            "工程18",
+            "工程19",
+            "工程20",
+            "工程21",
+            "工程22",
+            "工程23",
+            "工程24",
+            "工程計",
+            "M満載",
+            "M欠載",
+            "骨格C/V",
+            "冠せC/V",
+            "メインC/V",
+          ];
+        } else if (button === "button2") {
+          chartLabels1 = [
+            "工程1",
+            "工程2",
+            "工程3",
+            "工程4",
+            "工程5",
+            "工程6",
+            "工程7",
+            "工程8",
+            "工程9",
+            "工程10",
+            "工程11",
+            "工程12",
+            "工程13",
+            "工程14",
+            "工程15",
+            "工程16",
+            "検査1",
+            "検査2",
+            "検査3",
+            "検査4",
+            "検査5",
+            "検査6",
+            "検査7",
+            "順立1",
+            "順立2",
+            "順立3",
+            "順立4",
+            "順立5",
+            "PAD1",
+            "PAD2",
+            "PAD3",
+            "PAD4",
+            "PAD5",
+          ];
+        } else if (button === "button3") {
+          chartLabels1 = [
+            "工程1",
+            "工程2",
+            "工程3",
+            "工程4",
+            "工程5",
+            "工程6",
+            "工程7",
+            "工程8",
+            "工程9",
+            "工程10",
+            "工程11",
+            "工程12",
+            "工程13",
+            "工程14",
+            "工程15",
+            "工程16",
+            "検査1",
+            "検査2",
+            "検査3",
+            "検査4",
+            "検査5",
+            "検査6",
+            "検査7",
+            "順立1",
+            "順立2",
+            "順立3",
+            "順立4",
+            "順立5",
+            "PAD1",
+            "PAD2",
+            "PAD3",
+            "PAD4",
+            "PAD5",
+          ];
+        } else if (button === "button4") {
+          chartLabels1 = [
+            "工程1",
+            "工程2",
+            "工程3",
+            "工程4",
+            "工程5",
+            "工程6",
+            "工程7",
+            "工程8",
+            "工程9",
+            "工程10",
+            "工程11",
+            "工程12",
+            "工程13",
+            "工程14",
+            "工程15",
+            "工程16",
+            "工程17",
+            "工程18",
+            "工程19",
+            "工程20",
+            "工程21",
+            "工程22",
+            "工程23",
+            "工程24",
+            "工程25",
+          ];
+        } else if (button === "button5") {
+          chartLabels1 = [
+            "工程1",
+            "工程2",
+            "工程3",
+            "工程4",
+            "工程5",
+            "工程6",
+            "工程7",
+            "工程8",
+            "工程9",
+            "工程10",
+            "工程11",
+            "工程12",
+            "工程13",
+            "工程14",
+            "工程15",
+            "工程16",
+            "工程17",
+            "工程18",
+            "工程19",
+            "工程20",
+            "工程21",
+            "工程22",
+            "工程23",
+            "工程24",
+            "工程25",
+          ];
+        } else if (button === "button6") {
+          chartLabels2 = [
+            "骨格C/V",
+            "骨格 ミニコン1",
+            "骨格 ミニコン2",
+            "骨格 ミニコン3",
+            " 冠せC/V",
+            " 冠せ ミニコン1",
+            " 冠せ ミニコン2",
+            " 冠せ ミニコン3",
+            "メイン 前ミニコン",
+            "メインC/V",
+            "A/Bシリアル 管理装置",
+            "FB冠せ回流装置",
+            "F/BxF/C 締付け治具",
+            "回流装置 上流側",
+            "回流装置 下流側",
+            "RSE バイパス工程",
+            "検査前搬送",
+            "順建箱投入 回収装置",
+            "検査装置",
+            "出荷搬送 装置",
+          ];
+        }
+        chart.data.labels = button === "button6" ? chartLabels2 : chartLabels1;
+        if (button == "button1") {
+          var item_array = [];
+          foundItems.forEach(function (item) {
+            if (item.Position === "停止" || item.Position === "Fr停止") {
+              item_array.push(item);
+            }
+          });
+
+          for (var i = 0; i < item_array.length; i++) {
+            data1.push(item_array[i].DelayCount);
+            data2.push((item_array[i].DelayTime / 60).toFixed(1));
+          }
+        }
+        if (button == "button2") {
+          var item_array = [];
+          foundItems.forEach(function (item) {
+            if (
+              item.Position === "作業遅れ" ||
+              item.Position === "Fr作業遅れ"
+            ) {
+              item_array.push(item);
+            }
+          });
+
+          for (var i = 0; i < item_array.length; i++) {
+            data1.push(item_array[i].DelayCount);
+            data2.push((item_array[i].DelayTime / 60).toFixed(1));
+          }
+        }
+        if (button == "button3") {
+          var item_array = [];
+          foundItems.forEach(function (item) {
+            if (item.Position === "呼出" || item.Position === "Fr呼出") {
+              item_array.push(item);
+            }
+          });
+          for (var i = 0; i < item_array.length; i++) {
+            data1.push(item_array[i].DelayCount);
+            data2.push((item_array[i].DelayTime / 60).toFixed(1));
+          }
+        }
+        if (button == "button4") {
+          var item_array = [];
+          foundItems.forEach(function (item) {
+            if (
+              item.Position === "ポカヨケ" ||
+              item.Position === "Frポカヨケ"
+            ) {
+              item_array.push(item);
+            }
+          });
+
+          for (var i = 0; i < item_array.length; i++) {
+            data1.push(item_array[i].DelayCount);
+            data2.push((item_array[i].DelayTime / 60).toFixed(1));
+          }
+        }
+        if (button == "button5") {
+          var item_array = [];
+          foundItems.forEach(function (item) {
+            if (
+              item.Position === "締付異常" ||
+              item.Position === "Fr締付異常"
+            ) {
+              item_array.push(item);
+            }
+          });
+          for (var i = 0; i < item_array.length; i++) {
+            data1.push(item_array[i].DelayCount);
+            data2.push((item_array[i].DelayTime / 60).toFixed(1));
+          }
+        }
+        if (button == "button6") {
+          var item_array = [];
+          foundItems.forEach(function (item) {
+            if (
+              item.Position === "設備異常" ||
+              item.Position === "Fr設備異常"
+            ) {
+              item_array.push(item);
+            }
+          });
+          for (var i = 0; i < item_array.length; i++) {
+            data1.push(item_array[i].DelayCount);
+            data2.push((item_array[i].DelayTime / 60).toFixed(1));
+          }
+        }
+        chart.data.datasets[0].data = data1;
+        chart.data.datasets[1].data = data2;
+        chart.update();
+      }
+    </script>
+    <script>
+      $(document).ready(function () {
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, "0");
+        var mm = String(today.getMonth() + 1).padStart(2, "0"); //January is 0!
+        var yyyy = today.getFullYear();
+        today = mm + "/" + dd + "/" + yyyy;
+
+        $("#datepicker")
+          .datepicker({
+            format: "dd/mm/yyyy",
+            autoclose: true,
+            startDate: today,
+          })
+          .datepicker("setDate", new Date());
+      });
+      $("#datepicker").datepicker({
+        format: "dd/mm/yyyy",
+        autoclose: true,
+      });
+      $("#datepicker, #chartSelector1, #chartSelector3").change(function () {
+        foundItems = [];
+        var Time_array = [],
+          Time_array1 = [],
+          Time_array2 = [],
+          Time_array3 = [],
+          Time_array4 = [],
+          Time_array5 = [];
+        var sum = 0,
+          sum1 = 0,
+          sum2 = 0,
+          sum3 = 0,
+          sum4 = 0,
+          sum5 = 0;
+
+        var datepicker = $("#datepicker").val();
+        var selectedShift = $("#chartSelector1").val() == 1 ? "前直" : "後直";
+        var selectedLocation =
+          $("#chartSelector3").val() == 1 ? "フロント" : "サード";
+        var datepickerFormatted = moment(datepicker, "DD/MM/YYYY").format(
+          "YYYY-MM-DD"
+        );
+        $.ajax({
+          type: "GET",
+          url: "/api/data",
+          success: function (data) {
+            var dataFound = false;
+            data.forEach(function (item) {
+              if (
+                item.Date === datepickerFormatted &&
+                item.Shift === selectedShift &&
+                item.Location === selectedLocation
+              ) {
+                foundItems.push(item);
+                dataFound = true;
+              }
+            });
+            if (!dataFound) {
+              console.log("データがない");
+            }
+            foundItems.forEach(function (item) {
+              if (item.Position === "停止" || item.Position === "Fr停止")
+                Time_array.push(item.DelayTime);
+              if (
+                item.Position === "作業遅れ" ||
+                item.Position === "Fr作業遅れ"
+              )
+                Time_array1.push(item.DelayTime);
+              if (item.Position === "呼出" || item.Position === "Fr呼出")
+                Time_array2.push(item.DelayTime);
+              if (
+                item.Position === "ポカヨケ" ||
+                item.Position === "Frポカヨケ"
+              )
+                Time_array3.push(item.DelayTime);
+              if (
+                item.Position === "締付異常" ||
+                item.Position === "Fr締付異常"
+              )
+                Time_array4.push(item.DelayTime);
+              if (
+                item.Position === "設備異常" ||
+                item.Position === "Fr設備異常"
+              )
+                Time_array5.push(item.DelayTime);
+            });
+
+            for (var i = 0; i < Time_array.length; i++) {
+              sum += parseFloat((Time_array[i] / 60).toFixed(1));
+            }
+            for (var i = 0; i < Time_array.length; i++) {
+              sum1 += parseFloat((Time_array1[i] / 60).toFixed(1));
+            }
+            for (var i = 0; i < Time_array.length; i++) {
+              sum2 += parseFloat((Time_array2[i] / 60).toFixed(1));
+            }
+            for (var i = 0; i < Time_array.length; i++) {
+              sum3 += parseFloat((Time_array3[i] / 60).toFixed(1));
+            }
+            for (var i = 0; i < Time_array.length; i++) {
+              sum4 += parseFloat((Time_array4[i] / 60).toFixed(1));
+            }
+            for (var i = 0; i < Time_array.length; i++) {
+              sum5 += parseFloat((Time_array5[i] / 60).toFixed(1));
+            }
+
+            var data = {
+              ライン停止: sum + "分",
+              作業遅れ: sum1 + "分",
+              呼出: sum2 + "分",
+              ポカヨケ: sum3 + "分",
+              締付異常: sum4 + "分",
+              設備異常: sum5 + "分",
+            };
+            Object.keys(data).forEach(function (key) {
+              var cell = document.getElementById(key);
+              if (cell) {
+                cell.textContent = data[key];
+              }
+            });
+          },
+          error: function (xhr, status, error) {
+            console.log("Lỗi khi gửi yêu cầu:", error);
+          },
+        });
+      });
+
+      async function router(path) {
+        try {
+          const response = await fetch(path, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+          if (response.ok) {
+            window.location.href = path;
+          } else {
+            console.error("Error:", response.statusText);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+    </script>
+  </body>
+</html>

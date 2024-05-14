@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chart.js Example</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css"
+    />
+
+    <style>
+      .page-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .page {
+        display: none;
+        text-align: center;
+      }
+
+      .active {
+        display: block;
+      }
+
+      .pagination {
+        display: flex;
+        margin-top: 20px;
+      }
+
+      .pagination span {
+        cursor: pointer;
+        margin: 0 5px;
+        font-size: 20px;
+        color: gray;
+      }
+
+      .pagination span.active {
+        color: black; /* Màu chữ khi nút active */
+      }
+
+      .pagination span:hover {
+        color: gray;
+      }
+      #evaluation {
+        margin-top: 110px; /* Thay ?�?黛ｻ�? gi?�??�� tr盻?�� 10px t?�??��y theo kho蘯?��ng c?�??��ch b蘯?��n mu盻創 */
+      }
+      .shift-left {
+        margin-left: -10px; /* ?�?進盻�? ch盻穎h gi?�??�� tr盻?�� n?�??��y theo mong mu盻創 c盻?��a b蘯?��n */
+      }
+      body {
+        background-color: #f2f2f2;
+      }
+
+      table {
+        border: 3px solid black;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        border: 5px solid black; /* ?�?雪?��?�� ?�?黛ｺ?��m c盻?��a vi盻?�� */
+        padding: 5px;
+        text-align: center;
+      }
+
+      .menu {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #333;
+        text-align: center; /* C?�?�? ch盻穎h n盻�? dung v?�??��o gi盻?��a */
+      }
+
+      .menu li {
+        display: inline-block;
+      }
+
+      .menu li a {
+        display: block;
+        color: white;
+        text-align: center;
+        padding: 14px 20px;
+        text-decoration: none;
+      }
+
+      .menu li a:hover {
+        background-color: #f8f9fa;
+      }
+      .card {
+        background-color: #f8f9fa;
+        color: white;
+      }
+      th,
+      td {
+        padding: 5px;
+        border: 1px solid black;
+        text-align: center;
+      }
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        display: none;
+      }
+
+      .settings-container {
+        position: absolute;
+        width: 800px;
+        height: 400px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: space-between;
+      }
+
+      .settings-container ul {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        /* gap: 10px; Khoảng cách giữa các phần tử */
+      }
+      .button-container {
+        display: flex;
+        justify-content: space-between; /* Để căn chỉnh 2 nút sang 2 phía */
+        width: 100%; /* Để nút "Cancel" chiếm hết phần width phía bên phải */
+      }
+      /* .chart-container {
+        width: 500px;
+        height: 500px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      } */
+
+      /* canvas {
+        max-width: 100%;
+        max-height: 50%;
+        margin: 10px 0;
+      } */
+    </style>
+  </head>
+  <body>
+    <ul class="menu">
+      <li>
+        <a href="#home" onclick="router('/')"
+          ><i class="fas fa-home"></i> Home</a
+        >
+      </li>
+      <li>
+        <a href="#news"><i class="fas fa-newspaper"></i> News</a>
+      </li>
+      <li>
+        <a href="#contact"><i class="fas fa-address-book"></i> Contact</a>
+      </li>
+      <li>
+        <a href="#about"><i class="fas fa-info-circle"></i> About</a>
+      </li>
+      <li>
+        <a href="#settings" id="settingsIcon"
+          ><i class="fas fa-cog"></i> Settings</a
+        >
+      </li>
+    </ul>
+    <div id="settingsOverlay" class="overlay">
+      <div class="settings-container">
+        <h2><i class="fas fa-cog"></i>Settings</h2>
+        <ul>
+          <h5 class="card-title" style="color: black; font-weight: bold;">
+            グラフの種類
+          </h5>
+          <select class="form-control" id="SettingsChartType">
+            <option value="1">棒グラフ</option>
+            <option value="2">円グラフ</option>
+          </select>
+        </ul>
+        <div class="button-container">
+          <button id="closeSettingsButton">Cancel</button>
+          <button id="HandleAccess">適用</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="row my-3 d-flex justify-content-around">
+        <div class="card mt-2 mx-2" style="width: 400px;">
+          <div class="card-body">
+            <h5 class="card-title" style="color: black;">期間</h5>
+            <input
+              type="text"
+              id="datepicker"
+              class="form-control"
+              placeholder="Select Date"
+            />
+          </div>
+        </div>
+        <div class="card mt-2 mx-2" style="width: 200px;">
+          <div class="card-body">
+            <h5 class="card-title" style="color: black;">直</h5>
+            <select id="chartSelector1" class="form-control">
+              <option value="1">前直</option>
+              <option value="2">後直</option>
+              <option value="3">両方</option>
+            </select>
+          </div>
+        </div>
+        <div class="card mt-2 mx-2" style="width: 200px;">
+          <div class="card-body">
+            <h5 class="card-title" style="color: black;">Location</h5>
+            <select id="chartSelector3" class="form-control">
+              <option value="1">プロント</option>
+              <option value="2">サード</option>
+            </select>
+          </div>
+        </div>
+        <div class="card mt-2 mx-2" style="width: 200px;">
+          <div class="card-body">
+            <h5 class="card-title" style="color: black;">Type</h5>
+            <select id="chartSelector4" class="form-control">
+              <option value="1">Frライン停止</option>
+              <option value="2">Fr作業遅れ</option>
+              <option value="3">Fr呼出</option>
+              <option value="4">Frポカヨケ</option>
+              <option value="5">Fr締付異常</option>
+              <option value="6">Fr設備異常</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-9">
+          <div class="container mt-5">
+            <h1 class="text-center">平均チャート</h1>
+            <canvas id="combinedChart"></canvas>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="container mt-5">
+            <div id="evaluation"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-container" id="pagecontainer">
+      <div class="page active" id="page1">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title black-text" style="color: black;">
+              平均回数
+            </h5>
+            <canvas id="chBar1" width="1200" height="500"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="page" id="page2">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title black-text" style="color: black;">
+              平均時間
+            </h5>
+            <canvas id="chBar2" width="1200" height="500"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="pagination" id="pagination">
+        <span onclick="switchPage(1)" class="active">●</span>
+        <span onclick="switchPage(2)">●</span>
+      </div>
+    </div>
+
+    <div class="container" id="pagecontainer1">
+      <div class="row">
+        <div class="col-md-6" style="width: 500px; height: 1200px;">
+          <div
+            class="card"
+            style="width: 500px; height: 1200px; margin-bottom: 100px;"
+          >
+            <div class="card-body" style="width: 500px; height: 1200px;">
+              <h5
+                class="card-title black-text"
+                style="
+                  color: black;
+                  text-align: center;
+                  font-weight: bold;
+                  font-size: 24px;
+                "
+              >
+                前直
+              </h5>
+
+              <h5
+                class="card-title black-text"
+                style="color: black; text-align: center; margin-top: 10px;"
+              >
+                時間
+              </h5>
+              <canvas id="myPieChart"></canvas>
+              <h5
+                class="card-title black-text"
+                style="color: black; text-align: center; margin-top: 50px;"
+              >
+                回数
+              </h5>
+              <canvas id="myPieChart2"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6" style="width: 500px; height: 1200px;">
+          <div
+            class="card"
+            style="width: 500px; height: 1200px; margin-left: 100px;"
+          >
+            <div class="card-body" style="width: 500px; height: 1200px;">
+              <h5
+                class="card-title black-text"
+                style="
+                  color: black;
+                  text-align: center;
+                  font-weight: bold;
+                  font-size: 24px;
+                "
+              >
+                後直
+              </h5>
+
+              <h5
+                class="card-title black-text"
+                style="color: black; text-align: center; margin-top: 10px;"
+              >
+                時間
+              </h5>
+              <canvas id="myPieChart3"></canvas>
+              <h5
+                class="card-title black-text"
+                style="color: black; text-align: center; margin-top: 50px;"
+              >
+                回数
+              </h5>
+              <canvas id="myPieChart4"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.4.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+    <script>
+      var locations = Array.from({ length: 33 }, (_, i) => i + 1);
+      var meanDelayCount = generateRandomData();
+      var meanDelayTime = generateRandomData();
+      var ctx = document.getElementById("combinedChart").getContext("2d");
+      var isHidden = false; // Biến để theo dõi trạng thái ẩn/hiển thị
+      var combinedChart;
+      var chart1;
+      var chart2;
+      var currentPage = 3;
+      $("#settingsIcon").hide();
+      document.getElementById("pagecontainer1").style.display = "none";
+      function getCurrentPage() {
+        return currentPage;
+      }
+      function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+      function generateRandomData() {
+        var data = [];
+        for (var j = 0; j < 33; j++) {
+          data.push(getRandomInt(2, 100));
+        }
+        return data;
+      }
+      function DrawChart1() {
+        DeleteChart("chBar1");
+        var data1 = generateRandomData();
+        var data2 = generateRandomData();
+        var ctx2 = document.getElementById("chBar1").getContext("2d");
+        ctx2.clearRect(
+          0,
+          0,
+          document.getElementById("chBar1").width,
+          document.getElementById("chBar1").height
+        );
+        chart1 = new Chart(ctx2, {
+          type: "bar",
+          data: {
+            labels: [
+              "工程1",
+              "工程2",
+              "工程3",
+              "工程4",
+              "工程5",
+              "工程6",
+              "工程7",
+              "工程8",
+              "工程9",
+              "工程10",
+              "工程11",
+              "工程12",
+              "工程13",
+              "工程14",
+              "工程15",
+              "工程16",
+              "工程17",
+              "工程18",
+              "工程19",
+              "工程20",
+              "工程21",
+              "工程22",
+              "工程23",
+              "工程24",
+              "工程25",
+              "工程26",
+              "工程27",
+              "工程28",
+              "工程29",
+              "工程30",
+            ],
+            datasets: [
+              {
+                label: "前直",
+                data: data1,
+                backgroundColor: "#28a745",
+              },
+              {
+                label: "後直",
+                data: data2,
+                backgroundColor: "#007bff",
+              },
+            ],
+          },
+          options: {
+            plugins: {
+              datalabels: {
+                anchor: "end",
+                align: "top",
+                formatter: function (value, context) {
+                  return value; // Hiển thị giá trị của cột
+                },
+              },
+            },
+            legend: {
+              position: "bottom",
+              display: true,
+            },
+            scales: {
+              x: {
+                barPercentage: 0.4,
+                categoryPercentage: 0.5,
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: "回数", // Đơn vị của trục tung
+                },
+              },
+            },
+          },
+          // Cấu hình plugin datalabels
+          plugins: [ChartDataLabels],
+        });
+      }
+      function DeleteChart(chartId) {
+        var chartCanvas = document.getElementById(chartId);
+        if (chartCanvas) {
+          var chartInstance = Chart.getChart(chartCanvas);
+          if (chartInstance) {
+            chartInstance.destroy();
+          }
+        }
+      }
+      function DrawChart2() {
+        DeleteChart("chBar2");
+        var data3 = generateRandomData();
+        var data4 = generateRandomData();
+        var ctx3 = document.getElementById("chBar2").getContext("2d");
+        ctx3.clearRect(
+          0,
+          0,
+          document.getElementById("chBar2").width,
+          document.getElementById("chBar2").height
+        );
+        chart2 = new Chart(ctx3, {
+          type: "bar",
+          data: {
+            labels: [
+              "工程1",
+              "工程2",
+              "工程3",
+              "工程4",
+              "工程5",
+              "工程6",
+              "工程7",
+              "工程8",
+              "工程9",
+              "工程10",
+              "工程11",
+              "工程12",
+              "工程13",
+              "工程14",
+              "工程15",
+              "工程16",
+              "工程17",
+              "工程18",
+              "工程19",
+              "工程20",
+              "工程21",
+              "工程22",
+              "工程23",
+              "工程24",
+              "工程25",
+              "工程26",
+              "工程27",
+              "工程28",
+              "工程29",
+              "工程30",
+            ],
+            datasets: [
+              {
+                label: "前直",
+                data: data3,
+                backgroundColor: "#28a745",
+              },
+              {
+                label: "後直",
+                data: data4,
+                backgroundColor: "#007bff",
+              },
+            ],
+          },
+          options: {
+            plugins: {
+              datalabels: {
+                anchor: "end",
+                align: "top",
+                formatter: function (value, context) {
+                  return value; // Hiển thị giá trị của cột
+                },
+              },
+            },
+            legend: {
+              position: "bottom",
+              display: true,
+            },
+            scales: {
+              x: {
+                barPercentage: 0.4,
+                categoryPercentage: 0.5,
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: "分", // Đơn vị của trục tung
+                },
+              },
+            },
+          },
+          plugins: [ChartDataLabels],
+        });
+      }
+      DrawChart2();
+      function getTopNValues(arr, n) {
+        var values = [];
+        var indexes = [];
+        for (var i = 0; i < n; i++) {
+          var maxIndex = arr.reduce(
+            (maxIndex, currentValue, currentIndex, array) =>
+              currentValue > array[maxIndex] ? currentIndex : maxIndex,
+            0
+          );
+          indexes.push(maxIndex);
+          values.push(arr[maxIndex]);
+          arr[maxIndex] = -Infinity;
+        }
+        return { indexes, values };
+      }
+      function GetMax(a, b) {
+        var top3Count = getTopNValues(a, 3);
+        var top3Time = getTopNValues(b, 3);
+        var countTableHtml =
+          "<h3 class='text-center'>呼出回数ワースト</h3><table class='table'><thead><tr><th scope='col'>工程名</th><th scope='col'>回数</th></tr></thead><tbody>";
+        top3Count.indexes.forEach((index, i) => {
+          countTableHtml += `<tr><td>${locations[index]}</td><td>${top3Count.values[i]}</td></tr>`;
+        });
+        countTableHtml += "</tbody></table>";
+
+        var timeTableHtml =
+          "<h3 class='text-center'>呼出平均時間ワースト</h3><table class='table'><thead><tr><th scope='col'>工程名</th><th scope='col'>分</th></tr></thead><tbody>";
+        top3Time.indexes.forEach((index, i) => {
+          timeTableHtml += `<tr><td>${locations[index]}</td><td>${top3Time.values[i]}</td></tr>`;
+        });
+        timeTableHtml += "</tbody></table>";
+        document.getElementById("evaluation").innerHTML =
+          countTableHtml + timeTableHtml;
+      }
+
+      var chartLabels1 = [
+        "工程1",
+        "工程2",
+        "工程3",
+        "工程4",
+        "工程5",
+        "工程6",
+        "工程7",
+        "工程8",
+        "工程9",
+        "工程10",
+        "工程11",
+        "工程12",
+        "工程13",
+        "工程14",
+        "工程15",
+        "工程16",
+        "工程17",
+        "工程18",
+        "工程19",
+        "工程20",
+        "工程21",
+        "工程22",
+        "工程23",
+        "工程24",
+        "工程計",
+        "M満載",
+        "M欠載",
+        "骨格C/V",
+        "冠せC/V",
+        "メインC/V",
+      ];
+      combinedChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: chartLabels1,
+          datasets: [
+            {
+              label: "回数",
+              data: meanDelayCount,
+              backgroundColor: "rgba(255, 99, 132, 0.2)",
+              borderColor: "rgba(255, 99, 132, 1)",
+              borderWidth: 1,
+              yAxisID: "count",
+            },
+            {
+              label: "分",
+              data: meanDelayTime,
+              type: "line",
+              fill: false,
+              borderColor: "rgb(75, 192, 192)",
+              tension: 0.1,
+              yAxisID: "time",
+            },
+          ],
+        },
+        options: {
+          scales: {
+            count: {
+              type: "linear",
+              position: "left",
+              title: {
+                display: true,
+                text: "回数",
+                rotation: 30,
+              },
+            },
+            time: {
+              type: "linear",
+              position: "right",
+              title: {
+                display: true,
+                text: "分",
+                rotation: 45,
+              },
+              grid: {
+                drawOnChartArea: true,
+              },
+            },
+          },
+        },
+      });
+      GetMax(
+        combinedChart.data.datasets[0].data,
+        combinedChart.data.datasets[1].data
+      );
+    </script>
+
+    <script>
+      $(document).ready(function () {
+        var selectedStartDate = null;
+        var selectedEndDate = null;
+        var currentSelection = 0;
+        $("#datepicker")
+          .datepicker({
+            format: "dd/mm/yyyy",
+            autoclose: false,
+            clearBtn: true,
+            multidate: true,
+            multidateSeparator: " - ",
+            beforeShowDay: function (date) {
+              if (
+                date.getTime() ===
+                  (selectedStartDate ? selectedStartDate.getTime() : null) ||
+                date.getTime() ===
+                  (selectedEndDate ? selectedEndDate.getTime() : null)
+              ) {
+                return {
+                  classes: "active",
+                };
+              }
+            },
+          })
+          .on("changeDate", function (e) {
+            var selectedDate = e.date;
+            if (currentSelection === 0) {
+              selectedStartDate = selectedDate;
+              currentSelection = 1;
+            } else if (currentSelection === 1) {
+              selectedEndDate = selectedDate;
+              currentSelection = 0;
+            }
+            if (selectedStartDate && selectedEndDate) {
+              $(this).datepicker("hide");
+              selectedStartDate = null;
+              selectedEndDate = null;
+            }
+          });
+        $("#datepicker").on("clearDate", function () {
+          selectedStartDate = null;
+          selectedEndDate = null;
+        });
+      });
+
+      document.addEventListener("DOMContentLoaded", function () {
+        document.getElementsByClassName("page-container")[0].style.display =
+          "none";
+      });
+
+      $("#datepicker").change(function () {
+        updateChart_location();
+      });
+
+      $("#chartSelector1").change(function () {
+        var selectedOption = $(this).val();
+        if (selectedOption === "3") {
+          $("#combinedChart").parent().parent().parent().hide();
+          // Ẩn cả container chứa biểu đồ và evaluation
+          document.getElementsByClassName("page-container")[0].style.display =
+            "flex";
+          document.getElementById("pagecontainer1").style.display = "none";
+          currentPage = 1;
+          DrawChart1();
+          $("#settingsIcon").show();
+        } else {
+          currentPage = 3;
+          updateChart_location();
+          document.getElementById("pagecontainer1").style.display = "none";
+          $("#settingsIcon").hide();
+          $("#combinedChart").parent().parent().parent().show();
+          // Hiển thị container chứa biểu đồ và evaluation khi chọn các option khác
+          document.getElementsByClassName("page-container")[0].style.display =
+            "none";
+        }
+      });
+      $("#chartSelector3").change(function () {
+        updateChart_location();
+      });
+      $("#chartSelector4").change(function () {
+        var selectedValue = $(this).val();
+        updateChart_position(selectedValue);
+      });
+      async function router(path) {
+        try {
+          const response = await fetch(path, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+          if (response.ok) {
+            window.location.href = path;
+          } else {
+            console.error("Error:", response.statusText);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+      function switchPage(pageNumber) {
+        var pages = document.getElementsByClassName("page");
+        var pagination = document
+          .getElementsByClassName("pagination")[0]
+          .getElementsByTagName("span");
+
+        for (var i = 0; i < pages.length; i++) {
+          if (i === pageNumber - 1) {
+            pages[i].classList.add("active");
+            pagination[i].classList.add("active");
+            if (i === 0) {
+              DrawChart1();
+              currentPage = i + 1;
+            }
+            if (i === 1) {
+              DrawChart2();
+              currentPage = i + 1;
+            }
+          } else {
+            pages[i].classList.remove("active");
+            pagination[i].classList.remove("active");
+          }
+        }
+      }
+
+      // Khi nhấn vào nút Close
+    </script>
+
+    <!-- Xu ly Menu -->
+    <script>
+      document
+        .getElementById("settingsIcon")
+        .addEventListener("click", function () {
+          document.getElementById("settingsOverlay").style.display = "block";
+        });
+      function updateChartSize() {
+        var Pagecontainer1 = document.getElementById("pagecontainer1");
+
+        var MyPieChart = document.getElementById("myPieChart");
+        var MyPieChart2 = document.getElementById("myPieChart2");
+        var MyPieChart3 = document.getElementById("myPieChart3");
+        var MyPieChart4 = document.getElementById("myPieChart4");
+        if (MyPieChart && Pagecontainer1 && MyPieChart2) {
+          Pagecontainer1.style.width = "100%";
+          Pagecontainer1.style.height = "100%";
+        }
+      }
+      function DrawPie() {
+        DeleteChart("myPieChart");
+        DeleteChart("myPieChart2");
+        DeleteChart("myPieChart3");
+        DeleteChart("myPieChart4");
+        var ctx = document.getElementById("myPieChart").getContext("2d");
+        var ctx2 = document.getElementById("myPieChart2").getContext("2d");
+        var ctx3 = document.getElementById("myPieChart3").getContext("2d");
+        var ctx4 = document.getElementById("myPieChart4").getContext("2d");
+        var data = {
+          labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+          datasets: [
+            {
+              label: "# of Votes",
+              data: [12, 19, 3, 5, 2, 3],
+              backgroundColor: [
+                "rgba(255, 99, 132, 0.2)",
+                "rgba(54, 162, 235, 0.2)",
+                "rgba(255, 206, 86, 0.2)",
+                "rgba(75, 192, 192, 0.2)",
+                "rgba(153, 102, 255, 0.2)",
+                "rgba(255, 159, 64, 0.2)",
+              ],
+              borderColor: [
+                "rgba(255, 99, 132, 1)",
+                "rgba(54, 162, 235, 1)",
+                "rgba(255, 206, 86, 1)",
+                "rgba(75, 192, 192, 1)",
+                "rgba(153, 102, 255, 1)",
+                "rgba(255, 159, 64, 1)",
+              ],
+              borderWidth: 1,
+            },
+          ],
+        };
+        var options = {
+          plugins: {
+            datalabels: {
+              formatter: (value, ctx) => {
+                let sum = 0;
+                let dataArr = ctx.chart.data.datasets[0].data;
+                dataArr.map((data) => {
+                  sum += data;
+                });
+                let percentage = ((value * 100) / sum).toFixed(2) + "%";
+                return percentage;
+              },
+              color: "white",
+              font: {
+                weight: "bold",
+              },
+            },
+          },
+        };
+        var myPieChart = new Chart(ctx, {
+          type: "pie",
+          data: data,
+          options: options,
+        });
+        var myPieChart2 = new Chart(ctx2, {
+          type: "pie",
+          data: data,
+          options: options,
+        });
+        var myPieChart3 = new Chart(ctx3, {
+          type: "pie",
+          data: data,
+          options: options,
+        });
+        var myPieChart4 = new Chart(ctx4, {
+          type: "pie",
+          data: data,
+          options: options,
+        });
+        updateChartSize();
+      }
+      document
+        .getElementById("closeSettingsButton")
+        .addEventListener("click", function () {
+          document.getElementById("settingsOverlay").style.display = "none";
+        });
+
+      document
+        .getElementById("HandleAccess")
+        .addEventListener("click", function () {
+          document.getElementById("settingsOverlay").style.display = "none";
+          var selectedOption = $("#SettingsChartType").val();
+          if (selectedOption === "2") {
+            document.getElementById("pagecontainer").style.display = "none";
+            document.getElementById("pagecontainer1").style.display = "flex";
+            DeleteChart("chBar1");
+            DeleteChart("chBar2");
+            DrawPie();
+          } else {
+            document.getElementById("pagecontainer").style.display = "flex";
+            document.getElementById("pagecontainer1").style.display = "none";
+            DeleteChart("myPieChart");
+            DrawChart1();
+            DrawChart2();
+          }
+        });
+
+      function updateChart_location() {
+        var data1 = [];
+        var data2 = [];
+
+        for (var j = 0; j < 33; j++) {
+          data1.push(getRandomInt(1, 100));
+          data2.push(getRandomInt(1, 50));
+        }
+        if (getCurrentPage() === 1 && chart1) {
+          chart1.data.datasets[0].data = data1;
+          chart1.data.datasets[1].data = data2;
+          chart1.update();
+          GetMax(chart1.data.datasets[0].data, chart1.data.datasets[1].data);
+          console.log("Chart1");
+        }
+
+        if (getCurrentPage() === 2 && chart2) {
+          chart2.data.datasets[0].data = data1;
+          chart2.data.datasets[1].data = data2;
+          chart2.update();
+          GetMax(chart2.data.datasets[0].data, chart2.data.datasets[1].data);
+        }
+        if (getCurrentPage() === 3 && combinedChart) {
+          combinedChart.data.datasets[0].data = data1;
+          combinedChart.data.datasets[1].data = data2;
+          combinedChart.update();
+          GetMax(
+            combinedChart.data.datasets[0].data,
+            combinedChart.data.datasets[1].data
+          );
+        }
+      }
+      function updateChart_position(selectedValue) {
+        var data1 = [];
+        var data2 = [];
+        var chartLabels1 = [];
+        var chartLabels2 = [];
+        if (selectedValue === "1") {
+          chartLabels1 = [
+            "工程1",
+            "工程2",
+            "工程3",
+            "工程4",
+            "工程5",
+            "工程6",
+            "工程7",
+            "工程8",
+            "工程9",
+            "工程10",
+            "工程11",
+            "工程12",
+            "工程13",
+            "工程14",
+            "工程15",
+            "工程16",
+            "工程17",
+            "工程18",
+            "工程19",
+            "工程20",
+            "工程21",
+            "工程22",
+            "工程23",
+            "工程24",
+            "工程計",
+            "M満載",
+            "M欠載",
+            "骨格C/V",
+            "冠せC/V",
+            "メインC/V",
+          ];
+        } else if (selectedValue === "2") {
+          chartLabels1 = [
+            "工程1",
+            "工程2",
+            "工程3",
+            "工程4",
+            "工程5",
+            "工程6",
+            "工程7",
+            "工程8",
+            "工程9",
+            "工程10",
+            "工程11",
+            "工程12",
+            "工程13",
+            "工程14",
+            "工程15",
+            "工程16",
+            "検査1",
+            "検査2",
+            "検査3",
+            "検査4",
+            "検査5",
+            "検査6",
+            "検査7",
+            "順立1",
+            "順立2",
+            "順立3",
+            "順立4",
+            "順立5",
+            "PAD1",
+            "PAD2",
+            "PAD3",
+            "PAD4",
+            "PAD5",
+          ];
+        } else if (selectedValue === "3") {
+          chartLabels1 = [
+            "工程1",
+            "工程2",
+            "工程3",
+            "工程4",
+            "工程5",
+            "工程6",
+            "工程7",
+            "工程8",
+            "工程9",
+            "工程10",
+            "工程11",
+            "工程12",
+            "工程13",
+            "工程14",
+            "工程15",
+            "工程16",
+            "検査1",
+            "検査2",
+            "検査3",
+            "検査4",
+            "検査5",
+            "検査6",
+            "検査7",
+            "順立1",
+            "順立2",
+            "順立3",
+            "順立4",
+            "順立5",
+            "PAD1",
+            "PAD2",
+            "PAD3",
+            "PAD4",
+            "PAD5",
+          ];
+        } else if (selectedValue === "4") {
+          chartLabels1 = [
+            "工程1",
+            "工程2",
+            "工程3",
+            "工程4",
+            "工程5",
+            "工程6",
+            "工程7",
+            "工程8",
+            "工程9",
+            "工程10",
+            "工程11",
+            "工程12",
+            "工程13",
+            "工程14",
+            "工程15",
+            "工程16",
+            "工程17",
+            "工程18",
+            "工程19",
+            "工程20",
+            "工程21",
+            "工程22",
+            "工程23",
+            "工程24",
+            "工程25",
+          ];
+        } else if (selectedValue === "5") {
+          chartLabels1 = [
+            "工程1",
+            "工程2",
+            "工程3",
+            "工程4",
+            "工程5",
+            "工程6",
+            "工程7",
+            "工程8",
+            "工程9",
+            "工程10",
+            "工程11",
+            "工程12",
+            "工程13",
+            "工程14",
+            "工程15",
+            "工程16",
+            "工程17",
+            "工程18",
+            "工程19",
+            "工程20",
+            "工程21",
+            "工程22",
+            "工程23",
+            "工程24",
+            "工程25",
+          ];
+        } else if (selectedValue === "6") {
+          chartLabels2 = [
+            "骨格C/V",
+            "骨格 ミニコン1",
+            "骨格 ミニコン2",
+            "骨格 ミニコン3",
+            " 冠せC/V",
+            " 冠せ ミニコン1",
+            " 冠せ ミニコン2",
+            " 冠せ ミニコン3",
+            "メイン 前ミニコン",
+            "メインC/V",
+            "A/Bシリアル 管理装置",
+            "FB冠せ回流装置",
+            "F/BxF/C 締付け治具",
+            "回流装置 上流側",
+            "回流装置 下流側",
+            "RSE バイパス工程",
+            "検査前搬送",
+            "順建箱投入 回収装置",
+            "検査装置",
+            "出荷搬送 装置",
+          ];
+        }
+
+        for (var j = 0; j < 33; j++) {
+          data1.push(getRandomInt(1, 100));
+          data2.push(getRandomInt(1, 100));
+        }
+        if (getCurrentPage() === 1 && chart1) {
+          chart1.data.labels =
+            selectedValue === "6" ? chartLabels2 : chartLabels1;
+          chart1.data.datasets[0].data = data1;
+          chart1.data.datasets[1].data = data2;
+          chart1.update();
+          GetMax(chart1.data.datasets[0].data, chart1.data.datasets[1].data);
+        }
+        if (getCurrentPage() === 2 && chart2) {
+          chart2.data.labels =
+            selectedValue === "6" ? chartLabels2 : chartLabels1;
+          chart2.data.datasets[0].data = data1;
+          chart2.data.datasets[1].data = data2;
+          chart2.update();
+          GetMax(chart2.data.datasets[0].data, chart2.data.datasets[1].data);
+        }
+
+        if (getCurrentPage() === 3 && combinedChart) {
+          combinedChart.data.labels =
+            selectedValue === "6" ? chartLabels2 : chartLabels1;
+          combinedChart.data.datasets[0].data = data1;
+          combinedChart.data.datasets[1].data = data2;
+          combinedChart.update();
+          GetMax(
+            combinedChart.data.datasets[0].data,
+            combinedChart.data.datasets[1].data
+          );
+        }
+      }
+    </script>
+    <div id="overlay" class="overlay"></div>
+  </body>
+</html>
