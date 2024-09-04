@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Import Excel File</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <style>
+      body {
+        display: flex;
+        background-color: #f8f9fa;
+      }
+      #sideMenu {
+        width: 250px;
+        height: 100vh;
+        background: #343a40;
+        color: white;
+        transition: transform 0.3s ease;
+        transform: translateX(-100%);
+        position: fixed;
+      }
+      #sideMenu.active {
+        transform: translateX(0);
+      }
+      #content {
+        margin-left: 50px;
+        transition: margin-left 0.3s ease;
+        width: 100%;
+        padding: 20px;
+      }
+      #content.active {
+        margin-left: 300px;
+      }
+      #menuToggle {
+        cursor: pointer;
+        position: fixed;
+        top: 20px;
+        left: 10px;
+        z-index: 1000;
+        font-size: 24px;
+        color: #343a40;
+        transition: transform 0.3s ease;
+      }
+      .menu-item {
+        padding: 15px;
+        border-bottom: 1px solid #495057;
+      }
+      .menu-item:hover {
+        background-color: #495057;
+      }
+      .custom-file-input ~ .custom-file-label::after {
+        content: "Browse";
+      }
+      .custom-file-input:lang(en) ~ .custom-file-label::after {
+        content: "Browse";
+      }
+      .custom-file-label::after {
+        height: calc(2.25rem + 2px);
+        line-height: 2.25rem;
+      }
+      .form-container {
+        display: flex;
+        justify-content: space-between;
+      }
+      .form-left {
+        flex: 1;
+        margin-right: 20px;
+      }
+      .form-right {
+        flex: 1;
+        display: flex;
+        justify-content: flex-end;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="sideMenu">
+      <div class="menu-item">Menu Item 1</div>
+      <div class="menu-item">Menu Item 2</div>
+      <div class="menu-item">Menu Item 3</div>
+    </div>
+
+    <div id="menuToggle">
+      <i class="fas fa-arrow-right"></i>
+    </div>
+
+    <div id="content" class="container mt-5">
+      <h1 class="mb-4" style="text-align: center;">在庫管理</h1>
+      <div class="form-container">
+        <div class="form-left">
+          <div class="form-group">
+            <label for="startDate">Start Date</label>
+            <input type="date" id="startDate" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label for="endDate">End Date</label>
+            <input type="date" id="endDate" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label for="customBox">Custom Box</label>
+            <input
+              type="text"
+              id="customBox"
+              class="form-control"
+              placeholder="Enter custom value"
+            />
+          </div>
+        </div>
+        <div class="form-right">
+          <div class="custom-file">
+            <input type="file" id="fileInput" class="custom-file-input" />
+            <label class="custom-file-label" for="fileInput">Choose file</label>
+          </div>
+        </div>
+      </div>
+      <table class="table table-bordered table-hover mt-4" id="excelTable">
+        <thead class="thead-dark">
+          <tr id="tableHeader">
+            <!-- Table headers will be inserted here -->
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Table data will be inserted here -->
+        </tbody>
+      </table>
+      <table class="table table-bordered table-hover mt-4">
+        <thead class="thead-dark">
+          <tr>
+            <th>車種</th>
+            <th>カバー記号</th>
+            <th>カバー品番</th>
+            <th>色</th>
+            <th>部位</th>
+            <th>C/B</th>
+            <th>R/L</th>
+            <th>仕掛在庫</th>
+            <th>完成品在庫</th>
+            <th>処理</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>EBZ</td>
+            <td></td>
+            <td></td>
+            <td>ダークローズ</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>34</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>VBZ</td>
+            <td></td>
+            <td></td>
+            <td>白</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>5</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>VNZ</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>0</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <th>車種</th>
+            <th>カバー記号</th>
+            <th>カバー品番</th>
+            <th>色</th>
+            <th>部位</th>
+            <th>C/B</th>
+            <th>R/L</th>
+            <th>仕掛在庫</th>
+            <th>完成品在庫</th>
+            <th>処理</th>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      document
+        .getElementById("menuToggle")
+        .addEventListener("click", function () {
+          var sideMenu = document.getElementById("sideMenu");
+          var content = document.getElementById("content");
+          sideMenu.classList.toggle("active");
+          content.classList.toggle("active");
+          this.innerHTML = sideMenu.classList.contains("active")
+            ? '<i class="fas fa-arrow-left"></i>'
+            : '<i class="fas fa-arrow-right"></i>';
+        });
+
+      document
+        .getElementById("fileInput")
+        .addEventListener("change", function (e) {
+          var file = e.target.files[0];
+          document.querySelector(".custom-file-label").textContent = file.name;
+          document.getElementById("fileName").value = file.name;
+
+          var reader = new FileReader();
+          reader.onload = function (event) {
+            var data = new Uint8Array(event.target.result);
+            var workbook = XLSX.read(data, { type: "array" });
+            var firstSheetName = workbook.SheetNames[0];
+            var worksheet = workbook.Sheets[firstSheetName];
+
+            var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            generateTable(jsonData);
+          };
+          reader.readAsArrayBuffer(file);
+        });
+
+      function generateTable(data) {
+        var tableHeader = document.getElementById("tableHeader");
+        var tableBody = document.getElementById("tableBody");
+
+        // Clear previous table content
+        tableHeader.innerHTML = "";
+        tableBody.innerHTML = "";
+
+        if (data.length > 0) {
+          // Create table headers
+          var headers = data[0];
+          var headerRow = document.createElement("tr");
+          headers.forEach(function (header) {
+            var th = document.createElement("th");
+            th.textContent = header;
+            headerRow.appendChild(th);
+          });
+          tableHeader.appendChild(headerRow);
+
+          // Create table rows
+          for (var i = 1; i < data.length; i++) {
+            var row = document.createElement("tr");
+            data[i].forEach(function (cell) {
+              var td = document.createElement("td");
+              td.textContent = cell;
+              row.appendChild(td);
+            });
+            tableBody.appendChild(row);
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,2115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chart.js Example</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css"
+    />
+    <style>
+      .content {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        padding: 20px;
+      }
+
+      .box {
+        width: 300px;
+        margin: 5px;
+        padding: 10px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s, opacity 0.3s;
+      }
+
+      .box:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .box img {
+        width: 100%;
+        height: auto;
+        border-radius: 5px;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .fade-in {
+        animation: fadeIn 1s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateY(-50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .slide-in {
+        animation: slideIn 0.5s ease-out;
+      }
+      .box img {
+        width: 100%;
+        height: 200px; /* hoặc bất kỳ chiều cao nào bạn muốn */
+        object-fit: cover; /* để ảnh không bị bể */
+      }
+      .shift-left {
+        margin-left: -10px;
+      }
+      body {
+        background-color: #f8f9fa; /* Màu nền */
+        color: #343a40; /* Màu văn bản */
+      }
+      .close-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 20px;
+        background-color: red;
+        /* cursor: pointer; */
+      }
+      .popup {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+        background-color: white;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+        animation: fadeIn 0.3s ease forwards;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      /* CSS cho overlay */
+      .overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(100, 100, 100);
+        z-index: 9998;
+        animation: fadeInOverlay 0.3s ease forwards;
+      }
+
+      @keyframes fadeInOverlay {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      /* CSS cho popupChartContainer */
+      #popupChartContainer {
+        display: none;
+        position: fixed;
+        top: 350px;
+        left: 630px;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+        background-color: white;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+        animation: fadeIn 0.3s ease forwards;
+      }
+
+      .menu li a {
+        display: block;
+        color: white;
+        text-align: center;
+        padding: 14px 20px;
+        text-decoration: none;
+      }
+
+      .menu li a:hover {
+        background-color: #f8f9fa;
+      }
+      .card {
+        background-color: #f8f9fa;
+        color: white;
+      }
+      .button-group {
+        position: absolute;
+        top: 400px;
+        right: 30px;
+        transform: translateY(-50%);
+      }
+      .button1 {
+        background-color: coral;
+        border: none;
+        color: black;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        padding: 10px 24px;
+        width: 150px; /* Đặt chiều rộng của nút */
+        border-radius: 12px; /* Bo tròn viền */
+        transition-duration: 0.4s;
+      }
+      .button {
+        display: block;
+        margin-bottom: 30px;
+        padding: 20px 40px;
+        background-color: white;
+        color: black;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        font-size: 16px;
+        width: 150px; /* Đặt chiều rộng của nút */
+        height: 75px; /* Đặt chiều cao của nút */
+        border-radius: 12px; /* Bo tròn viền */
+        transition-duration: 0.4s;
+      }
+      .button.disabled {
+        background-color: aqua;
+        cursor: not-allowed;
+      }
+      .button:hover {
+        background-color: #45a049; /* Màu nền khi hover */
+      }
+      .button-group button:last-child {
+        margin-bottom: 0;
+      }
+      /* 
+      #customers th,
+      #customers td {
+        font-size: 20px; 
+        border: 1px solid black; 
+        padding: 8px; 
+      }
+      #customers {
+        font-family: Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+      }
+      #customers tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      #customers tr:hover {
+        background-color: #ddd;
+      }
+      #customers th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: #04aa6d;
+        color: white;
+      } */
+      body,
+      html {
+        height: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        max-width: 100%;
+      }
+
+      .main-content-section {
+        flex: 1 0 80%;
+        width: 100%;
+        overflow: auto;
+        background-color: #ffffff;
+      }
+
+      .button-container {
+        flex: 1 0 10%;
+        width: 100%;
+        display: flex;
+        justify-content: space-around; /* Chia đều các nút */
+        align-items: center;
+        background-color: #f1f1f1;
+      }
+
+      .menu-section {
+        flex: 1 0 10%;
+        max-width: 100%;
+        background-color: #4caf50;
+        display: flex;
+      }
+      .menu {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%; /* Ensure menu spans full width */
+        padding: 0 20px;
+        box-sizing: border-box;
+      }
+      .menu-left,
+      .menu-right {
+        flex: 1;
+        font-size: 30px;
+        color: black; /* Text color black */
+        font-weight: bold;
+      }
+      .menu-left {
+        cursor: pointer;
+      }
+      .menu-right {
+        text-align: right; /* Align text to the right */
+      }
+
+      .button-container button {
+        margin: 10px;
+        padding: 10px 20px;
+        font-size: 18px;
+        border: none;
+        cursor: pointer;
+      }
+
+      .card {
+        max-width: 100%;
+        margin: 0;
+      }
+
+      .table {
+        max-width: 100%;
+        margin: 0;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%; /* Đảm bảo row có chiều rộng 100% */
+        margin: 0; /* Loại bỏ margin */
+        padding: 0; /* Loại bỏ padding */
+      }
+      .col-md-4,
+      .col-md-8 {
+        padding: 1rem;
+        box-sizing: border-box; /* Đảm bảo padding và border được tính vào chiều rộng */
+      }
+      .col-md-4 {
+        flex: 0 0 45%;
+        max-width: 45%;
+      }
+      .col-md-8 {
+        flex: 0 0 55%;
+        max-width: 55%;
+      }
+
+      .chart-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        align-items: center;
+      }
+
+      .chart-container canvas {
+        flex: 0 1 15%; /* Set each chart to take up 45% of the container width */
+        margin: 10px;
+        max-height: 240px; /* Set a max height for each chart */
+        box-sizing: border-box;
+      }
+
+      .page {
+        display: none;
+        width: 100%;
+      }
+      .page.active {
+        display: block;
+      }
+      .switch-page {
+        text-align: center;
+        margin-top: 20px;
+      }
+      .switch-page .dot {
+        height: 15px;
+        width: 15px;
+        margin: 0 5px;
+        background-color: #bbb;
+        border-radius: 50%;
+        display: inline-block;
+        cursor: pointer;
+      }
+      .switch-page .dot.active {
+        background-color: #717171;
+      }
+      .table-container {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+      }
+
+      #customers1 th,
+      #customers1 td {
+        width: 140px; /* Adjust the width as needed */
+      }
+
+      #customers2 th,
+      #customers2 td {
+        width: 140px;
+        border-right: 1px solid black;
+      }
+      #customers1 th,
+      #customers1 td,
+      #customers2 th,
+      #customers2 td,
+      #customers3 th,
+      #customers3 td {
+        font-size: 20px; /* Adjust the font size as needed */
+      }
+    </style>
+  </head>
+  <body>
+    <div id="overlay" class="overlay">
+      <div class="button-group">
+        <button id="button1" class="button" style="font-weight: bold;" disabled>
+          ライン停止
+        </button>
+        <button id="button2" class="button" style="font-weight: bold;" disabled>
+          作業遅れ
+        </button>
+        <button id="button3" class="button" style="font-weight: bold;" disabled>
+          呼出
+        </button>
+        <button id="button4" class="button" style="font-weight: bold;" disabled>
+          ポカヨケ
+        </button>
+        <button id="button5" class="button" style="font-weight: bold;" disabled>
+          締付異常
+        </button>
+        <button id="button6" class="button" style="font-weight: bold;" disabled>
+          設備異常
+        </button>
+      </div>
+    </div>
+    <div id="popupChartContainer" class="popup" style="margin-top: 80px;">
+      <!-- <span id="chartTitle" style="margin-left: 540px; font-size: 10px;"></span> -->
+      <button id="closeButton" class="close-button">x</button>
+      <canvas id="popupChart"> </canvas>
+    </div>
+
+    <div class="container">
+      <!-- Menu Section -->
+      <div class="menu-section">
+        <div class="menu">
+          <div class="menu-left" onclick="router('/')" style="cursor: pointer;">
+            FR/3RDライン稼働 モニター
+          </div>
+          <div class="menu-right" id="current-time"></div>
+        </div>
+      </div>
+
+      <!-- Main Content Section -->
+      <div class="main-content-section">
+        <div class="row my-3">
+          <div class="col-md-4 py-1">
+            <div
+              class="card mb-3"
+              style="overflow: auto; background-color: #ffffff; border: none;"
+            >
+              <div class="table-container">
+                <table
+                  id="customers1"
+                  class="table"
+                  style="
+                    border: 5px solid black;
+                    border-collapse: collapse;
+                    width: auto;
+                  "
+                >
+                  <thead>
+                    <tr>
+                      <th
+                        scope="col"
+                        style="
+                          color: white;
+                          border-color: black;
+                          text-align: center;
+                          background-color: red;
+                          width: 100px;
+                        "
+                      >
+                        ライン停止
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td
+                        id="ライン停止"
+                        style="border-color: black; text-align: center;"
+                      >
+                        38 分
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <table
+                  id="customers2"
+                  class="table"
+                  style="
+                    border: 5px solid black;
+                    border-collapse: collapse;
+                    margin-left: 20px;
+                    width: auto;
+                  "
+                >
+                  <thead>
+                    <tr>
+                      <th
+                        scope="col"
+                        style="
+                          color: white;
+                          border-color: black;
+                          text-align: center;
+                          background-color: red;
+                        "
+                      >
+                        作業遅れ
+                      </th>
+                      <th
+                        scope="col"
+                        style="
+                          color: white;
+                          border-color: black;
+                          text-align: center;
+                          background-color: red;
+                        "
+                      >
+                        ポカヨケ
+                      </th>
+                      <th
+                        scope="col"
+                        style="
+                          color: white;
+                          border-color: black;
+                          text-align: center;
+                          background-color: red;
+                        "
+                      >
+                        締付異常
+                      </th>
+                      <th
+                        scope="col"
+                        style="
+                          color: white;
+                          border-color: black;
+                          text-align: center;
+                          background-color: red;
+                        "
+                      >
+                        設備異常
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td
+                        id="作業遅れ"
+                        style="border-color: black; text-align: center;"
+                      >
+                        3 分
+                      </td>
+                      <td
+                        id="ポカヨケ"
+                        style="border-color: black; text-align: center;"
+                      >
+                        15 分
+                      </td>
+                      <td
+                        id="締付異常"
+                        style="border-color: black; text-align: center;"
+                      >
+                        12 分
+                      </td>
+                      <td
+                        id="設備異常"
+                        style="border-color: black; text-align: center;"
+                      >
+                        8 分
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <table
+                id="customers3"
+                class="table"
+                style="
+                  border: 5px solid black;
+                  max-width: 20%;
+                  margin-top: 20px;
+                "
+              >
+                <thead>
+                  <tr>
+                    <th
+                      scope="col"
+                      style="
+                        color: black;
+                        border-color: black;
+                        text-align: center;
+                        background-color: yellow;
+                      "
+                    >
+                      呼出
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td
+                      id="呼出"
+                      style="border-color: black; text-align: center;"
+                    >
+                      24 回
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- Existing main content here -->
+            <!-- <div
+              class="card mb-3"
+              style="overflow: auto; background-color: #ffffff; border: none;"
+            >
+              <table
+                id="customers"
+                class="table"
+                style="border: 5px solid black; border-spacing: 10px;"
+              >
+                <thead>
+                  <tr>
+                    <th
+                      scope="col"
+                      style="
+                        color: white;
+                        border-color: black;
+                        text-align: center;
+                        background-color: red;
+                      "
+                    >
+                      ライン停止
+                    </th>
+                    <th style="border: none; background-color: white;"></th>
+                    <th
+                      scope="col"
+                      style="
+                        color: white;
+                        border-color: black;
+                        text-align: center;
+                        background-color: red;
+                      "
+                    >
+                      作業遅れ
+                    </th>
+                    <th
+                      scope="col"
+                      style="
+                        color: white;
+                        border-color: black;
+                        text-align: center;
+                        background-color: red;
+                      "
+                    >
+                      ポカヨケ
+                    </th>
+                    <th
+                      scope="col"
+                      style="
+                        color: white;
+                        border-color: black;
+                        text-align: center;
+                        background-color: red;
+                      "
+                    >
+                      締付異常
+                    </th>
+                    <th
+                      scope="col"
+                      style="
+                        color: white;
+                        border-color: black;
+                        text-align: center;
+                        background-color: red;
+                      "
+                    >
+                      設備異常
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="summaryTableBody">
+                  <tr>
+                    <td
+                      id="ライン停止"
+                      style="border-color: black; text-align: center;"
+                    >
+                      38 分
+                    </td>
+                    <td style="border: none;"></td>
+                    <td
+                      id="作業遅れ"
+                      style="border-color: black; text-align: center;"
+                    >
+                      3 分
+                    </td>
+                    <td
+                      id="ポカヨケ"
+                      style="border-color: black; text-align: center;"
+                    >
+                      15 分
+                    </td>
+                    <td
+                      id="締付異常"
+                      style="border-color: black; text-align: center;"
+                    >
+                      12 分
+                    </td>
+                    <td
+                      id="設備異常"
+                      style="border-color: black; text-align: center;"
+                    >
+                      8 分
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <table
+                id="customers"
+                class="table"
+                style="
+                  border: 5px solid black;
+                  max-width: 20%;
+                  margin-top: 20px;
+                "
+              >
+                <thead>
+                  <tr>
+                    <th
+                      scope="col"
+                      style="
+                        color: black;
+                        border-color: black;
+                        text-align: center;
+                        background-color: yellow;
+                      "
+                    >
+                      呼出
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="summaryTableBody">
+                  <tr>
+                    <td
+                      id="呼出"
+                      style="border-color: black; text-align: center;"
+                    >
+                      24 回
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div> -->
+
+            <div
+              class="card mb-3"
+              style="
+                margin-top: 20px;
+                border-color: black;
+                width: 60%;
+                margin-left: 19%;
+              "
+            >
+              <div class="card-body">
+                <h5
+                  class="card-title"
+                  style="color: black; text-align: center; font-weight: bold;"
+                >
+                  日付
+                </h5>
+                <input
+                  type="text"
+                  id="datepicker"
+                  class="form-control"
+                  style="text-align: center;"
+                  placeholder=""
+                />
+              </div>
+            </div>
+            <div
+              class="card"
+              style="
+                border-color: black;
+                margin-top: 20px;
+                width: 60%;
+                margin-left: 19%;
+              "
+            >
+              <div class="card-body">
+                <h5
+                  class="card-title"
+                  style="color: black; text-align: center; font-weight: bold;"
+                >
+                  直
+                </h5>
+                <select
+                  id="chartSelector1"
+                  class="form-control"
+                  style="text-align: center;"
+                >
+                  <option value="1">前直</option>
+                  <option value="2">後直</option>
+                </select>
+              </div>
+            </div>
+            <div
+              class="card"
+              style="
+                border-color: black;
+                margin-top: 20px;
+                width: 60%;
+                margin-left: 19%;
+              "
+            >
+              <div class="card-body">
+                <h5
+                  class="card-title"
+                  style="color: black; text-align: center; font-weight: bold;"
+                >
+                  種類
+                </h5>
+                <select
+                  id="chartSelector3"
+                  class="form-control"
+                  style="text-align: center;"
+                >
+                  <option value="1">フロント</option>
+                  <option value="2">サード</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-8">
+            <div class="card mb-3" style="border-color: black;">
+              <div class="card-body">
+                <div class="chart-container">
+                  <div class="page active" id="page1">
+                    <canvas id="chart1"></canvas>
+                    <canvas id="chart2"></canvas>
+                  </div>
+                  <div class="page" id="page2">
+                    <canvas id="chart3"></canvas>
+                    <canvas id="chart4"></canvas>
+                  </div>
+                  <div class="switch-page">
+                    <span class="dot active" onclick="switchPage(1)"></span>
+                    <span class="dot" onclick="switchPage(2)"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Button Container Section -->
+      <div class="button-container">
+        <button
+          onclick="drawOnChartArea('button1')"
+          class="button1"
+          style="background-color: yellow; font-weight: bold;"
+        >
+          停止
+        </button>
+        <button
+          onclick="drawOnChartArea('button2')"
+          class="button1"
+          style="background-color: red; color: white; font-weight: bold;"
+        >
+          作業遅れ
+        </button>
+        <button
+          onclick="drawOnChartArea('button3')"
+          class="button1"
+          style="background-color: red; color: white; font-weight: bold;"
+        >
+          呼出
+        </button>
+        <button
+          onclick="drawOnChartArea('button4')"
+          class="button1"
+          style="background-color: red; color: white; font-weight: bold;"
+        >
+          ポカヨケ
+        </button>
+        <button
+          onclick="drawOnChartArea('button5')"
+          class="button1"
+          style="background-color: red; color: white; font-weight: bold;"
+        >
+          締付異常
+        </button>
+        <button
+          onclick="drawOnChartArea('button6')"
+          class="button1"
+          style="background-color: red; color: white; font-weight: bold;"
+        >
+          設備異常
+        </button>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
+    <script>
+      // Lấy thời gian hiện tại
+      let currentPage = 1;
+      function getCurrentTime() {
+        let now = new Date();
+        let day = now.getDate();
+        let month = now.getMonth() + 1;
+        let year = now.getFullYear();
+        let hour = now.getHours();
+        let minute = now.getMinutes();
+        let second = now.getSeconds();
+        return `${month}月${day}日 ${hour}:${minute}:${second}`;
+      }
+
+      // Cập nhật thời gian hiện tại vào phần Menu
+      function updateCurrentTime() {
+        let currentTimeElement = document.getElementById("current-time");
+        if (currentTimeElement) {
+          currentTimeElement.innerText = getCurrentTime();
+        }
+      }
+
+      // Cập nhật thời gian mỗi giây
+      setInterval(updateCurrentTime, 1000);
+
+      // Đảm bảo thời gian hiển thị lần đầu
+      updateCurrentTime();
+      window.onload = () => {
+        setInterval(() => {
+          currentPage = currentPage === 1 ? 2 : 1;
+          switchPage(currentPage);
+        }, 10000); // 60000 milliseconds = 1 minute
+      };
+    </script>
+    <script>
+      var foundItems = [];
+      var targetValue = [];
+      var data1 = [];
+      var data2 = [];
+      var booleanpage = true;
+      var Name_Data = [];
+      var Teishi_Name = [];
+      var Sagyou_Name = [];
+      var Yobidashi_Name = [];
+      var Pokayoke_Name = [];
+      var Shimetsu_Name = [];
+      var Setsubi_Name = [];
+      var Nedan_Name = [];
+      let chart1, chart2, chart3, chart4;
+      let chart_temp;
+      const switchPage = (page) => {
+        document.querySelectorAll(".page").forEach((p, index) => {
+          p.classList.toggle("active", index === page - 1);
+        });
+        document.querySelectorAll(".switch-page .dot").forEach((dot, index) => {
+          dot.classList.toggle("active", index === page - 1);
+        });
+        if (page === 2 && booleanpage === true) {
+          if (chart3) {
+            data1 = [];
+            data2 = [];
+            var item_array = [];
+            foundItems.forEach(function (item) {
+              if (
+                item.Position === "締付異常" ||
+                item.Position === "Fr締付異常" ||
+                item.Position === "締付" ||
+                item.Position === "Fr締付"
+              ) {
+                item_array.push(item);
+              }
+            });
+            // console.log("Hello t nè m ơi 3 :", item_array);
+            for (var i = 0; i < item_array.length; i++) {
+              data1.push(item_array[i].DelayCount);
+              data2.push((item_array[i].DelayTime / 60).toFixed(1));
+            }
+            chart3.data.datasets[0].data = data2;
+            chart3.data.datasets[1].data = data1;
+            chart3.update();
+          }
+          if (chart4) {
+            data1 = [];
+            data2 = [];
+            var item_array = [];
+            foundItems.forEach(function (item) {
+              if (
+                item.Position === "設備異常" ||
+                item.Position === "Fr設備異常" ||
+                item.Position === "設備" ||
+                item.Position === "Fr設備"
+              ) {
+                item_array.push(item);
+              }
+            });
+            // console.log("Hello t nè m ơi 4 :", item_array);
+            for (var i = 0; i < item_array.length; i++) {
+              data1.push(item_array[i].DelayCount);
+              data2.push((item_array[i].DelayTime / 60).toFixed(1));
+            }
+            chart4.data.datasets[0].data = data2;
+            chart4.data.datasets[1].data = data1;
+            chart4.update();
+          }
+          booleanpage = false;
+        }
+        if (page === 1 && booleanpage === false) {
+          if (chart1) {
+            data1 = [];
+            data2 = [];
+            var item_array = [];
+            var item_array2 = [];
+            foundItems.forEach(function (item) {
+              if (
+                item.Position === "作業遅れ1" ||
+                item.Position === "Fr作業遅れ1"
+              ) {
+                item_array.push(item);
+              }
+              if (
+                item.Position === "作業遅れ2" ||
+                item.Position === "Fr作業遅れ2"
+              ) {
+                item_array2.push(item);
+              }
+            });
+            let gamen1 = item_array.slice(0, 15);
+            let kensa = item_array2.slice(0, 7);
+            let jyuntate = item_array2.slice(10, 15);
+            let PAD = item_array2.slice(15, 20);
+            let kokkaku = item_array2.slice(20, 25);
+            let full_gamen = gamen1.concat(kensa, jyuntate, PAD, kokkaku);
+            for (var i = 0; i < full_gamen.length; i++) {
+              data1.push(full_gamen[i].DelayCount);
+              data2.push((full_gamen[i].DelayTime / 60).toFixed(1));
+            }
+            chart1.data.datasets[0].data = data2;
+            chart1.data.datasets[1].data = data1;
+            chart1.update();
+          }
+          if (chart2) {
+            data1 = [];
+            data2 = [];
+            var item_array = [];
+            foundItems.forEach(function (item) {
+              if (
+                item.Position === "ポカヨケ" ||
+                item.Position === "Frポカヨケ"
+              ) {
+                item_array.push(item);
+              }
+            });
+            for (var i = 0; i < item_array.length; i++) {
+              data1.push(item_array[i].DelayCount);
+              data2.push((item_array[i].DelayTime / 60).toFixed(1));
+            }
+            chart2.data.datasets[0].data = data2;
+            chart2.data.datasets[1].data = data1;
+            chart2.update();
+          }
+          booleanpage = true;
+        }
+      };
+      const getCurrentPage = () => {
+        const activePage = document.querySelector(".page.active");
+        const pageIndex = Array.from(
+          document.querySelectorAll(".page")
+        ).indexOf(activePage);
+        return pageIndex + 1;
+      };
+
+      function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+      function generateRandomData() {
+        var data = [];
+        for (var j = 0; j < 33; j++) {
+          data.push(getRandomInt(2, 100));
+        }
+        return data;
+      }
+      function processData(data) {
+        Teishi_Name = [];
+        Sagyou_Name = [];
+        Yobidashi_Name = [];
+        Pokayoke_Name = [];
+        Shimetsu_Name = [];
+        Setsubi_Name = [];
+        Nedan_Name = [];
+        data.forEach(function (item) {
+          if (item.Status === "停止") {
+            Teishi_Name.push(item.Koutei_Name);
+          }
+          if (item.Status === "作業遅れ") {
+            Sagyou_Name.push(item.Koutei_Name);
+          }
+          if (item.Status === "呼び出し") {
+            Yobidashi_Name.push(item.Koutei_Name);
+          }
+          if (item.Status === "ポカヨケ") {
+            Pokayoke_Name.push(item.Koutei_Name);
+          }
+          if (item.Status === "締付異常") {
+            Shimetsu_Name.push(item.Koutei_Name);
+          }
+          if (item.Status === "設備異常") {
+            Setsubi_Name.push(item.Koutei_Name);
+          }
+          if (item.Status === "目標値") {
+            Nedan_Name.push(item.Koutei_Name);
+            for (var i = 0; i < 7; i++) {
+              targetValue[i] = parseInt(Nedan_Name[i], 10);
+            }
+          }
+        });
+      }
+      async function getData() {
+        return $.ajax({
+          url: "/api/Koutei/get_data",
+          type: "GET",
+        });
+      }
+      const annotationPlugin = window["chartjs-plugin-annotation"];
+      const dataLabelsPlugin = window["ChartDataLabels"];
+      Chart.register(annotationPlugin, dataLabelsPlugin);
+
+      const createChart = (id, label, koutei, target) => {
+        const ctx = document.getElementById(id).getContext("2d");
+        ctx.clearRect(0, 0, popupChart.width, popupChart.height);
+        var data1 = [];
+        var data2 = [];
+        if (id == "chart1") {
+          var item_array = [];
+          var item_array2 = [];
+          foundItems.forEach(function (item) {
+            if (
+              item.Position === "作業遅れ1" ||
+              item.Position === "Fr作業遅れ1"
+            ) {
+              item_array.push(item);
+            }
+            if (
+              item.Position === "作業遅れ2" ||
+              item.Position === "Fr作業遅れ2"
+            ) {
+              item_array2.push(item);
+            }
+          });
+          let gamen1 = item_array.slice(0, 15);
+          let kensa = item_array2.slice(0, 7);
+          let jyuntate = item_array2.slice(10, 15);
+          let PAD = item_array2.slice(15, 20);
+          let kokkaku = item_array2.slice(20, 25);
+          let full_gamen = gamen1.concat(kensa, jyuntate, PAD, kokkaku);
+          for (var i = 0; i < full_gamen.length; i++) {
+            data1.push(full_gamen[i].DelayCount);
+            data2.push((full_gamen[i].DelayTime / 60).toFixed(1));
+          }
+        }
+        if (id == "chart2") {
+          var item_array = [];
+          foundItems.forEach(function (item) {
+            if (
+              item.Position === "ポカヨケ" ||
+              item.Position === "Frポカヨケ"
+            ) {
+              item_array.push(item);
+            }
+          });
+
+          for (var i = 0; i < item_array.length; i++) {
+            data1.push(item_array[i].DelayCount);
+            data2.push((item_array[i].DelayTime / 60).toFixed(1));
+          }
+        }
+        if (id == "chart3") {
+          var item_array = [];
+          foundItems.forEach(function (item) {
+            if (
+              item.Position === "締付異常" ||
+              item.Position === "Fr締付異常" ||
+              item.Position === "締付" ||
+              item.Position === "Fr締付"
+            ) {
+              item_array.push(item);
+            }
+          });
+
+          for (var i = 0; i < item_array.length; i++) {
+            data1.push(item_array[i].DelayCount);
+            data2.push((item_array[i].DelayTime / 60).toFixed(1));
+          }
+        }
+        if (id == "chart4") {
+          var item_array = [];
+          foundItems.forEach(function (item) {
+            if (
+              item.Position === "設備異常" ||
+              item.Position === "Fr設備異常" ||
+              item.Position === "設備" ||
+              item.Position === "Fr設備"
+            ) {
+              item_array.push(item);
+            }
+          });
+
+          for (var i = 0; i < item_array.length; i++) {
+            data1.push(item_array[i].DelayCount);
+            data2.push((item_array[i].DelayTime / 60).toFixed(1));
+          }
+        }
+
+        const annotations = {};
+        if (target !== 0) {
+          annotations.targetLine = {
+            type: "line",
+            yMin: target, // Giá trị mục tiêu
+            yMax: target,
+            borderColor: "red",
+            borderWidth: 2,
+            borderDash: [10, 5],
+            yScaleID: "time",
+            label: {
+              content: target.toString() + "分", // Hiển thị giá trị của thanh target line
+              display: true,
+              position: "end",
+              backgroundColor: "red",
+              color: "white",
+              font: {
+                size: 10,
+              },
+            },
+          };
+        }
+
+        return new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: koutei,
+            datasets: [
+              {
+                type: "line",
+                label: "分",
+                data: data2,
+                borderColor: "black",
+                backgroundColor: "black",
+                borderWidth: 2,
+                fill: false,
+                yAxisID: "time",
+                tension: 0.1,
+                datalabels: {
+                  // Chỉ định datalabels cho dataset này
+                  display: false,
+                },
+              },
+              {
+                type: "bar",
+                label: "回数",
+                data: data1,
+                backgroundColor: "rgba(75, 192, 192, 0.2)",
+                borderColor: "rgba(75, 192, 192, 1)",
+                borderWidth: 1,
+                yAxisID: "count",
+                datalabels: {
+                  // Tắt datalabels cho dataset này
+                  anchor: "end",
+                  align: "top",
+                  color: "black",
+                  font: {
+                    weight: "bold",
+                  },
+                },
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              count: {
+                type: "linear",
+                position: "right",
+                title: {
+                  display: true,
+                  text: "回数",
+                  rotation: 30,
+                },
+                grid: {
+                  display: false, // Xóa grid lines trên trục count
+                },
+              },
+              time: {
+                type: "linear",
+                position: "left",
+                title: {
+                  display: true,
+                  text: "分",
+                  rotation: 45,
+                },
+                grid: {
+                  display: false, // Xóa grid lines trên trục time
+                },
+              },
+              x: {
+                grid: {
+                  display: false, // Xóa grid lines trên trục X
+                },
+              },
+            },
+            plugins: {
+              annotation: {
+                annotations: annotations,
+              },
+              title: {
+                display: true,
+                text: label,
+                font: {
+                  size: 20, // Thay đổi kích thước font
+                  family: "Arial", // Thay đổi font-family nếu muốn
+                  weight: "bold", // Thay đổi độ dày font nếu muốn
+                  color: "black", // Thay đổi màu font nếu muốn
+                },
+              },
+            },
+          },
+        });
+      };
+
+      window.addEventListener("load", async function () {
+        try {
+          const data = await getData();
+          Name_Data = data;
+          processData(Name_Data);
+          chart1 = createChart(
+            "chart1",
+            "作業遅れ",
+            Sagyou_Name,
+            targetValue[1]
+          );
+          chart2 = createChart(
+            "chart2",
+            "ポカヨケ",
+            Pokayoke_Name,
+            targetValue[3]
+          );
+          chart3 = createChart(
+            "chart3",
+            "締付異常",
+            Shimetsu_Name,
+            targetValue[4]
+          );
+          chart4 = createChart(
+            "chart4",
+            "設備異常",
+            Setsubi_Name,
+            targetValue[5]
+          );
+          booleanpage = true;
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      });
+
+      // Tu day la phan cu
+      var chart;
+      function updatePopupSize() {
+        var popupChartContainer = document.getElementById(
+          "popupChartContainer"
+        );
+        var popupChart = document.getElementById("popupChart");
+        if (popupChartContainer && popupChart) {
+          popupChartContainer.style.width = popupChart.width + 1250 + "px";
+          popupChartContainer.style.height = popupChart.height + 700 + "px";
+        }
+      }
+
+      var buttons = document.querySelectorAll(".button");
+      buttons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          convert(button.id);
+          updateChart(button.id);
+        });
+      });
+      //Update bieu do man ngoai
+      function update_miniCharts() {
+        if (chart1) {
+          data1 = [];
+          data2 = [];
+          var item_array = [];
+          var item_array2 = [];
+          foundItems.forEach(function (item) {
+            if (
+              item.Position === "作業遅れ1" ||
+              item.Position === "Fr作業遅れ1"
+            ) {
+              item_array.push(item);
+            }
+            if (
+              item.Position === "作業遅れ2" ||
+              item.Position === "Fr作業遅れ2"
+            ) {
+              item_array2.push(item);
+            }
+          });
+          let gamen1 = item_array.slice(0, 15);
+          let kensa = item_array2.slice(0, 7);
+          let jyuntate = item_array2.slice(10, 15);
+          let PAD = item_array2.slice(15, 20);
+          let kokkaku = item_array2.slice(20, 25);
+          let full_gamen = gamen1.concat(kensa, jyuntate, PAD, kokkaku);
+          for (var i = 0; i < full_gamen.length; i++) {
+            data1.push(full_gamen[i].DelayCount);
+            data2.push((full_gamen[i].DelayTime / 60).toFixed(1));
+          }
+          chart1.data.datasets[0].data = data2;
+          chart1.data.datasets[1].data = data1;
+          chart1.update();
+        }
+        if (chart2) {
+          data1 = [];
+          data2 = [];
+          var item_array = [];
+          foundItems.forEach(function (item) {
+            if (
+              item.Position === "ポカヨケ" ||
+              item.Position === "Frポカヨケ"
+            ) {
+              item_array.push(item);
+            }
+          });
+          for (var i = 0; i < item_array.length; i++) {
+            data1.push(item_array[i].DelayCount);
+            data2.push((item_array[i].DelayTime / 60).toFixed(1));
+          }
+          chart2.data.datasets[0].data = data2;
+          chart2.data.datasets[1].data = data1;
+          chart2.update();
+        }
+        if (chart3) {
+          data1 = [];
+          data2 = [];
+          var item_array = [];
+          foundItems.forEach(function (item) {
+            if (
+              item.Position === "締付異常" ||
+              item.Position === "Fr締付異常" ||
+              item.Position === "締付" ||
+              item.Position === "Fr締付"
+            ) {
+              item_array.push(item);
+            }
+          });
+          for (var i = 0; i < item_array.length; i++) {
+            data1.push(item_array[i].DelayCount);
+            data2.push((item_array[i].DelayTime / 60).toFixed(1));
+          }
+          chart3.data.datasets[0].data = data2;
+          chart3.data.datasets[1].data = data1;
+          chart3.update();
+        }
+        if (chart4) {
+          data1 = [];
+          data2 = [];
+          var item_array = [];
+          foundItems.forEach(function (item) {
+            if (
+              item.Position === "設備異常" ||
+              item.Position === "Fr設備異常" ||
+              item.Position === "設備" ||
+              item.Position === "Fr設備"
+            ) {
+              item_array.push(item);
+            }
+          });
+          for (var i = 0; i < item_array.length; i++) {
+            data1.push(item_array[i].DelayCount);
+            data2.push((item_array[i].DelayTime / 60).toFixed(1));
+          }
+          chart4.data.datasets[0].data = data2;
+          chart4.data.datasets[1].data = data1;
+          chart4.update();
+        }
+      }
+      function convert(button) {
+        var buttonIds = [
+          "button1",
+          "button2",
+          "button3",
+          "button4",
+          "button5",
+          "button6",
+        ];
+        for (i = 0; i < buttonIds.length; i++) {
+          if (buttonIds[i] === button) {
+            document.getElementById(buttonIds[i]).disabled = true;
+            document.getElementById(buttonIds[i]).classList.add("disabled");
+          } else {
+            document.getElementById(buttonIds[i]).disabled = false;
+            document.getElementById(buttonIds[i]).classList.remove("disabled");
+          }
+        }
+      }
+      //Do thi khi bam vao nut(Man hinh rieng)
+      function drawOnChartArea(button) {
+        var Value_temp;
+        var popupChartContainer = document.getElementById(
+          "popupChartContainer"
+        );
+        var overlay = document.getElementById("overlay");
+        var popupChart = document.getElementById("popupChart");
+        if (popupChartContainer && overlay && popupChart) {
+          var ctx = popupChart.getContext("2d");
+          ctx.clearRect(0, 0, popupChart.width, popupChart.height);
+          var label_temp;
+          var data1 = [];
+          var data2 = [];
+          if (button == "button1") {
+            label_temp = Teishi_Name;
+            Value_temp = targetValue[0];
+            var item_array = [];
+            foundItems.forEach(function (item) {
+              if (item.Position === "停止" || item.Position === "Fr停止") {
+                item_array.push(item);
+              }
+            });
+
+            for (var i = 0; i < item_array.length; i++) {
+              data1.push(item_array[i].DelayCount);
+              data2.push((item_array[i].DelayTime / 60).toFixed(1));
+            }
+          } else if (button == "button2") {
+            label_temp = Sagyou_Name;
+            Value_temp = targetValue[1];
+            var item_array = [];
+            var item_array2 = [];
+            foundItems.forEach(function (item) {
+              if (
+                item.Position === "作業遅れ1" ||
+                item.Position === "Fr作業遅れ1"
+              ) {
+                item_array.push(item);
+              }
+              if (
+                item.Position === "作業遅れ2" ||
+                item.Position === "Fr作業遅れ2"
+              ) {
+                item_array2.push(item);
+              }
+            });
+            let gamen1 = item_array.slice(0, 15);
+            let kensa = item_array2.slice(0, 7);
+            let jyuntate = item_array2.slice(10, 15);
+            let PAD = item_array2.slice(15, 20);
+            let kokkaku = item_array2.slice(20, 25);
+            let full_gamen = gamen1.concat(kensa, jyuntate, PAD, kokkaku);
+            for (var i = 0; i < full_gamen.length; i++) {
+              data1.push(full_gamen[i].DelayCount);
+              data2.push((full_gamen[i].DelayTime / 60).toFixed(1));
+            }
+          } else if (button == "button3") {
+            label_temp = Yobidashi_Name;
+            Value_temp = targetValue[2];
+            var item_array = [];
+            var item_array2 = [];
+            foundItems.forEach(function (item) {
+              if (item.Position === "呼出1" || item.Position === "Fr呼出1") {
+                item_array.push(item);
+              }
+              if (item.Position === "呼出2" || item.Position === "Fr呼出2") {
+                item_array2.push(item);
+              }
+            });
+            let gamen1 = item_array.slice(0, 15);
+            let kensa = item_array2.slice(0, 7);
+            let jyuntate = item_array2.slice(10, 15);
+            let PAD = item_array2.slice(15, 20);
+            let kokkaku = item_array2.slice(20, 25);
+            let full_gamen = gamen1.concat(kensa, jyuntate, PAD, kokkaku);
+            for (var i = 0; i < full_gamen.length; i++) {
+              data1.push(full_gamen[i].DelayCount);
+              data2.push((full_gamen[i].DelayTime / 60).toFixed(1));
+            }
+            console.log("data1:", data1);
+            console.log("data2:", data2);
+          } else if (button == "button4") {
+            label_temp = Pokayoke_Name;
+            Value_temp = targetValue[3];
+            var item_array = [];
+            foundItems.forEach(function (item) {
+              if (
+                item.Position === "ポカヨケ" ||
+                item.Position === "Frポカヨケ"
+              ) {
+                item_array.push(item);
+              }
+            });
+
+            for (var i = 0; i < item_array.length; i++) {
+              data1.push(item_array[i].DelayCount);
+              data2.push((item_array[i].DelayTime / 60).toFixed(1));
+            }
+          } else if (button == "button5") {
+            label_temp = Shimetsu_Name;
+            Value_temp = targetValue[4];
+            var item_array = [];
+            foundItems.forEach(function (item) {
+              if (
+                item.Position === "締付異常" ||
+                item.Position === "Fr締付異常" ||
+                item.Position === "締付" ||
+                item.Position === "Fr締付"
+              ) {
+                item_array.push(item);
+              }
+            });
+            for (var i = 0; i < item_array.length; i++) {
+              data1.push(item_array[i].DelayCount);
+              data2.push((item_array[i].DelayTime / 60).toFixed(1));
+            }
+          } else if (button == "button6") {
+            label_temp = Setsubi_Name;
+            Value_temp = targetValue[5];
+            var item_array = [];
+            foundItems.forEach(function (item) {
+              if (
+                item.Position === "設備異常" ||
+                item.Position === "Fr設備異常" ||
+                item.Position === "設備" ||
+                item.Position === "Fr設備"
+              ) {
+                item_array.push(item);
+              }
+            });
+            for (var i = 0; i < item_array.length; i++) {
+              data1.push(item_array[i].DelayCount);
+              data2.push((item_array[i].DelayTime / 60).toFixed(1));
+            }
+          }
+
+          if (chart) {
+            chart.destroy();
+          }
+
+          Chart.register(annotationPlugin, dataLabelsPlugin);
+          chart = new Chart(ctx, {
+            type: "bar",
+            data: {
+              labels: label_temp,
+              datasets: [
+                {
+                  type: "line",
+                  label: "分",
+                  data: data2,
+                  borderColor: "black",
+                  backgroundColor: "black",
+                  borderWidth: 1,
+                  fill: false,
+                  yAxisID: "time",
+                  tension: 0.1,
+                  datalabels: {
+                    // Chỉ định datalabels cho dataset này
+                    display: false,
+                  },
+                },
+                {
+                  type: "bar",
+                  label: "回数",
+                  data: data1,
+                  backgroundColor: "rgba(75, 192, 192, 0.2)",
+                  borderColor: "rgba(75, 192, 192, 1)",
+                  borderWidth: 1,
+                  yAxisID: "count",
+                  datalabels: {
+                    // Tắt datalabels cho dataset này
+                    anchor: "end",
+                    align: "top",
+                    color: "black",
+                    font: {
+                      weight: "bold",
+                    },
+                  },
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                count: {
+                  type: "linear",
+                  position: "right",
+                  title: {
+                    display: true,
+                    text: "回数",
+                    rotation: 30,
+                  },
+                  grid: {
+                    display: false, // Xóa grid lines trên trục count
+                  },
+                },
+                time: {
+                  type: "linear",
+                  position: "left",
+                  title: {
+                    display: true,
+                    text: "分",
+                    rotation: 45,
+                  },
+                  grid: {
+                    display: false, // Xóa grid lines trên trục time
+                  },
+                },
+                x: {
+                  grid: {
+                    display: false, // Xóa grid lines trên trục X
+                  },
+                },
+              },
+              plugins: {
+                annotation: {
+                  annotations: {
+                    targetLine: {
+                      type: "line",
+                      yMin: Value_temp, // Giá trị mục tiêu
+                      yMax: Value_temp,
+                      borderColor: "red",
+                      borderWidth: 2,
+                      borderDash: [10, 5],
+                      yScaleID: "time",
+                      label: {
+                        content: Value_temp.toString() + "分", // Hiển thị giá trị của thanh target line
+                        display: true,
+                        position: "end",
+                        backgroundColor: "red",
+                        color: "white",
+                        font: {
+                          size: 10,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          });
+          if (Value_temp == 0) {
+            chart.options.plugins.annotation.annotations.targetLine.display = false;
+            chart.update();
+          }
+          popupChartContainer.style.display = "block";
+          overlay.style.display = "block";
+          updatePopupSize();
+          convert(button);
+        } else {
+          console.error("Khong co do thi phu hop");
+        }
+      }
+
+      var closeButton = document.getElementById("closeButton");
+      if (closeButton) {
+        closeButton.addEventListener("click", function () {
+          var popupChartCanvas = document.getElementById("popupChart");
+          var ctx = popupChartCanvas.getContext("2d");
+          ctx.clearRect(0, 0, popupChartCanvas.width, popupChartCanvas.height);
+          popupChartContainer.style.display = "none";
+          overlay.style.display = "none";
+        });
+      }
+      //Ham moi khi bam sang do thi khac (Bieu do to)
+
+      function updateChart(button) {
+        var Value_temp;
+        var data1 = [];
+        var data2 = [];
+
+        var chartLabels1 = [];
+        var chartLabels2 = [];
+        //update bieu do man trong
+        if (button === "button1") {
+          chartLabels1 = Teishi_Name;
+          Value_temp = targetValue[0];
+          var item_array = [];
+          foundItems.forEach(function (item) {
+            if (item.Position === "停止" || item.Position === "Fr停止") {
+              item_array.push(item);
+            }
+          });
+
+          for (var i = 0; i < item_array.length; i++) {
+            data1.push(item_array[i].DelayCount);
+            data2.push((item_array[i].DelayTime / 60).toFixed(1));
+          }
+        } else if (button === "button2") {
+          chartLabels1 = Sagyou_Name;
+          Value_temp = targetValue[1];
+          var item_array = [];
+          var item_array2 = [];
+          foundItems.forEach(function (item) {
+            if (
+              item.Position === "作業遅れ1" ||
+              item.Position === "Fr作業遅れ1"
+            ) {
+              item_array.push(item);
+            }
+            if (
+              item.Position === "作業遅れ2" ||
+              item.Position === "Fr作業遅れ2"
+            ) {
+              item_array2.push(item);
+            }
+          });
+          let gamen1 = item_array.slice(0, 15);
+          let kensa = item_array2.slice(0, 7);
+          let jyuntate = item_array2.slice(10, 15);
+          let PAD = item_array2.slice(15, 20);
+          let kokkaku = item_array2.slice(20, 25);
+          let full_gamen = gamen1.concat(kensa, jyuntate, PAD, kokkaku);
+          for (var i = 0; i < full_gamen.length; i++) {
+            data1.push(full_gamen[i].DelayCount);
+            data2.push((full_gamen[i].DelayTime / 60).toFixed(1));
+          }
+        } else if (button === "button3") {
+          chartLabels1 = Yobidashi_Name;
+          Value_temp = targetValue[2];
+          var item_array = [];
+          var item_array2 = [];
+          foundItems.forEach(function (item) {
+            if (item.Position === "呼出1" || item.Position === "Fr呼出1") {
+              item_array.push(item);
+            }
+            if (item.Position === "呼出2" || item.Position === "Fr呼出2") {
+              item_array2.push(item);
+            }
+          });
+          let gamen1 = item_array.slice(0, 15);
+          let kensa = item_array2.slice(0, 7);
+          let jyuntate = item_array2.slice(10, 15);
+          let PAD = item_array2.slice(15, 20);
+          let kokkaku = item_array2.slice(20, 25);
+          let full_gamen = gamen1.concat(kensa, jyuntate, PAD, kokkaku);
+          for (var i = 0; i < full_gamen.length; i++) {
+            data1.push(full_gamen[i].DelayCount);
+            data2.push((full_gamen[i].DelayTime / 60).toFixed(1));
+          }
+        } else if (button === "button4") {
+          chartLabels1 = Pokayoke_Name;
+          Value_temp = targetValue[3];
+          var item_array = [];
+          foundItems.forEach(function (item) {
+            if (
+              item.Position === "ポカヨケ" ||
+              item.Position === "Frポカヨケ"
+            ) {
+              item_array.push(item);
+            }
+          });
+
+          for (var i = 0; i < item_array.length; i++) {
+            data1.push(item_array[i].DelayCount);
+            data2.push((item_array[i].DelayTime / 60).toFixed(1));
+          }
+        } else if (button === "button5") {
+          chartLabels1 = Shimetsu_Name;
+          Value_temp = targetValue[4];
+          var item_array = [];
+          foundItems.forEach(function (item) {
+            if (
+              item.Position === "締付異常" ||
+              item.Position === "Fr締付異常" ||
+              item.Position === "締付" ||
+              item.Position === "Fr締付"
+            ) {
+              item_array.push(item);
+            }
+          });
+          for (var i = 0; i < item_array.length; i++) {
+            data1.push(item_array[i].DelayCount);
+            data2.push((item_array[i].DelayTime / 60).toFixed(1));
+          }
+        } else if (button === "button6") {
+          chartLabels2 = Setsubi_Name;
+          Value_temp = targetValue[5];
+          var item_array = [];
+          foundItems.forEach(function (item) {
+            if (
+              item.Position === "設備異常" ||
+              item.Position === "Fr設備異常" ||
+              item.Position === "設備" ||
+              item.Position === "Fr設備"
+            ) {
+              item_array.push(item);
+            }
+          });
+          for (var i = 0; i < item_array.length; i++) {
+            data1.push(item_array[i].DelayCount);
+            data2.push((item_array[i].DelayTime / 60).toFixed(1));
+          }
+        }
+        chart.data.labels = button === "button6" ? chartLabels2 : chartLabels1;
+        chart.data.datasets[0].data = data2;
+        chart.data.datasets[1].data = data1;
+        if (Value_temp == 0) {
+          chart.options.plugins.annotation.annotations.targetLine.display = false;
+        } else {
+          chart.options.plugins.annotation.annotations.targetLine.display = true;
+          chart.options.plugins.annotation.annotations.targetLine.yMin = Value_temp;
+          chart.options.plugins.annotation.annotations.targetLine.yMax = Value_temp;
+          chart.options.plugins.annotation.annotations.targetLine.label.content =
+            Value_temp.toString() + "分";
+        }
+        chart.update();
+      }
+      function updatePieChart(data) {}
+    </script>
+    <script>
+      $(document).ready(function () {
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, "0");
+        var mm = String(today.getMonth() + 1).padStart(2, "0"); //January is 0!
+        var yyyy = today.getFullYear();
+        today = mm + "/" + dd + "/" + yyyy;
+
+        $("#datepicker")
+          .datepicker({
+            format: "dd/mm/yyyy",
+            autoclose: true,
+            startDate: today,
+          })
+          .datepicker("setDate", new Date());
+      });
+      $("#datepicker").datepicker({
+        format: "dd/mm/yyyy",
+        autoclose: true,
+      });
+      $("#datepicker, #chartSelector1, #chartSelector3").change(function () {
+        update_miniCharts();
+        let chart1, chart2;
+        foundItems = [];
+        var Time_array = [],
+          Time_array1 = [],
+          Time_array1_1 = [],
+          Time_array2 = [],
+          Time_array2_1 = [],
+          Time_array3 = [],
+          Time_array4 = [],
+          Time_array5 = [];
+        var sum = 0,
+          sum1 = 0,
+          sum2 = 0,
+          sum3 = 0,
+          sum4 = 0,
+          sum5 = 0;
+        sum1_1 = 0;
+        sum2_1 = 0;
+        sum_full = 0;
+
+        var datepicker = $("#datepicker").val();
+        var selectedShift = $("#chartSelector1").val() == 1 ? "前直" : "後直";
+        var selectedLocation =
+          $("#chartSelector3").val() == 1 ? "フロント" : "サード";
+        var datepickerFormatted = moment(datepicker, "DD/MM/YYYY").format(
+          "YYYY-MM-DD"
+        );
+        $.ajax({
+          type: "GET",
+          url: "/api/Fulltable/get_data",
+          success: function (data) {
+            var dataFound = false;
+            data.forEach(function (item) {
+              if (
+                item.Date === datepickerFormatted &&
+                item.Shift === selectedShift &&
+                item.Location === selectedLocation
+              ) {
+                foundItems.push(item);
+                dataFound = true;
+              }
+            });
+            if (!dataFound) {
+              console.log("データがない");
+            }
+            foundItems.forEach(function (item) {
+              if (item.Position === "停止" || item.Position === "Fr停止")
+                Time_array.push(item.DelayCount);
+              if (
+                item.Position == "作業遅れ1" ||
+                item.Position == "Fr作業遅れ1"
+              )
+                Time_array1.push(item.DelayTime);
+              if (
+                item.Position == "作業遅れ2" ||
+                item.Position == "Fr作業遅れ2"
+              )
+                Time_array1_1.push(item.DelayTime);
+              if (item.Position == "呼出1" || item.Position == "Fr呼出1")
+                Time_array2.push(item.DelayTime);
+              if (item.Position == "呼出2" || item.Position == "Fr呼出2")
+                Time_array2_1.push(item.DelayTime);
+
+              if (item.Position == "ポカヨケ" || item.Position == "Frポカヨケ")
+                Time_array3.push(item.DelayTime);
+              if (
+                item.Position == "締付異常" ||
+                item.Position == "Fr締付異常" ||
+                item.Position == "締付" ||
+                item.Position == "Fr締付"
+              )
+                Time_array4.push(item.DelayTime);
+              if (
+                item.Position == "設備異常" ||
+                item.Position == "Fr設備異常" ||
+                item.Position == "設備" ||
+                item.Position == "Fr設備"
+              )
+                Time_array5.push(item.DelayTime);
+            });
+
+            console.log("作業遅れ1:", Time_array1);
+            console.log("作業遅れ2:", Time_array1_1);
+            console.log("ポカヨケ:", Time_array3);
+            console.log("締付異常:", Time_array4);
+            console.log("設備異常:", Time_array5);
+
+            // for (var i = 0; i < Time_array.length; i++) {
+            //   sum += parseFloat(Time_array[i]);
+            // }
+            sum = parseFloat(Time_array[24]);
+            for (var i = 0; i < 16; i++) {
+              sum1 += parseFloat((Time_array1[i] / 60).toFixed(1));
+            }
+            for (var i = 0; i < Time_array.length; i++) {
+              sum1_1 += parseFloat((Time_array1_1[i] / 60).toFixed(1));
+            }
+
+            for (var i = 0; i < Time_array2.length; i++) {
+              sum2 += parseFloat((Time_array2[i] / 60).toFixed(1));
+            }
+            for (var i = 0; i < Time_array2_1.length; i++) {
+              sum2_1 += parseFloat((Time_array2_1[i] / 60).toFixed(1));
+            }
+            for (var i = 0; i < Time_array3.length; i++) {
+              sum3 += parseFloat((Time_array3[i] / 60).toFixed(1));
+            }
+            for (var i = 0; i < Time_array4.length; i++) {
+              sum4 += parseFloat((Time_array4[i] / 60).toFixed(1));
+            }
+            for (var i = 0; i < Time_array5.length; i++) {
+              sum5 += parseFloat((Time_array5[i] / 60).toFixed(1));
+            }
+
+            sum1 = parseFloat(sum1.toFixed(1));
+            sum1_1 = parseFloat(sum1_1.toFixed(1));
+            sum3 = parseFloat(sum3.toFixed(1));
+            sum4 = parseFloat(sum4.toFixed(1));
+            sum5 = parseFloat(sum5.toFixed(1));
+            console.log("test:", sum2_1);
+            sum_full = sum1 + sum3 + sum4 + sum5 + sum1_1 + sum2 + sum2_1;
+            sum_full = parseFloat(sum_full.toFixed(1));
+            var data = {
+              呼出: sum + "回",
+              ライン停止: sum_full + "分",
+              作業遅れ: (sum1 + sum1_1).toFixed(1) + "分",
+              ポカヨケ: sum3 + "分",
+              締付異常: sum4 + "分",
+              設備異常: sum5 + "分",
+            };
+            Object.keys(data).forEach(function (key) {
+              var cell = document.getElementById(key);
+              if (cell) {
+                cell.textContent = data[key];
+              }
+            });
+          },
+          error: function (xhr, status, error) {
+            console.log("Lỗi khi gửi yêu cầu:", error);
+          },
+        });
+      });
+
+      async function router(path) {
+        try {
+          const response = await fetch(path, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+          if (response.ok) {
+            window.location.href = path;
+          } else {
+            console.error("Error:", response.statusText);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+    </script>
+  </body>
+</html>

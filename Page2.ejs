@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chart.js Example</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css"
+    />
+    <style>
+      .page-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .page {
+        display: none;
+        text-align: center;
+      }
+
+      .active {
+        display: block;
+      }
+
+      .pagination {
+        display: flex;
+        margin-top: 20px;
+      }
+
+      .pagination span {
+        cursor: pointer;
+        margin: 0 5px;
+        font-size: 20px;
+        color: gray;
+      }
+
+      .pagination span.active {
+        color: black; /* Màu chữ khi nút active */
+      }
+
+      .pagination span:hover {
+        color: gray;
+      }
+      #evaluation {
+        margin-top: 110px; /* Thay ?�?黛ｻ�? gi?�??�� tr盻?�� 10px t?�??��y theo kho蘯?��ng c?�??��ch b蘯?��n mu盻創 */
+      }
+      .shift-left {
+        margin-left: -10px; /* ?�?進盻�? ch盻穎h gi?�??�� tr盻?�� n?�??��y theo mong mu盻創 c盻?��a b蘯?��n */
+      }
+      body {
+        background-color: #f8f9fa; /* Màu nền nhẹ nhàng cho trang */
+      }
+
+      table {
+        border: 3px solid black;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        border: 5px solid black; /* ?�?雪?��?�� ?�?黛ｺ?��m c盻?��a vi盻?�� */
+        padding: 5px;
+        text-align: center;
+      }
+
+      .menu {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #333;
+        text-align: center; /* C?�?�? ch盻穎h n盻�? dung v?�??��o gi盻?��a */
+      }
+
+      .menu li {
+        display: inline-block;
+      }
+
+      .menu li a {
+        display: block;
+        color: white;
+        text-align: center;
+        padding: 14px 20px;
+        text-decoration: none;
+      }
+
+      .menu li a:hover {
+        background-color: #f8f9fa;
+      }
+      .card {
+        background-color: #f8f9fa;
+        color: white;
+      }
+      th,
+      td {
+        padding: 5px;
+        border: 1px solid black;
+        text-align: center;
+      }
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        display: none;
+      }
+
+      .settings-container {
+        position: absolute;
+        width: 800px;
+        height: 400px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: space-between;
+      }
+
+      .settings-container ul {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        /* gap: 10px; Khoảng cách giữa các phần tử */
+      }
+      .button-container {
+        display: flex;
+        justify-content: space-between; /* Để căn chỉnh 2 nút sang 2 phía */
+        width: 100%; /* Để nút "Cancel" chiếm hết phần width phía bên phải */
+      }
+      .chart-title {
+        display: inline-block;
+        padding: 10px 20px;
+        border: 3px solid #4caf50; /* Màu viền */
+        border-radius: 10px; /* Bo góc viền */
+        background-color: #f0f0f0; /* Màu nền */
+        color: #333; /* Màu chữ */
+        font-family: "Arial", sans-serif; /* Phông chữ */
+        font-size: 30px; /* Kích thước chữ */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Hiệu ứng đổ bóng */
+        text-align: center;
+        margin: auto;
+      }
+      .chart-title1 {
+        padding: 10px 20px;
+        border: 3px solid black; /* Màu viền */
+        border-radius: 10px; /* Bo góc viền */
+        background-color: red; /* Màu nền */
+        color: white; /* Màu chữ */
+        font-family: "Arial", sans-serif; /* Phông chữ */
+        font-size: 30px; /* Kích thước chữ */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Hiệu ứng đổ bóng */
+        text-align: center;
+        margin: auto;
+      }
+      .chart-container {
+        border: 2px solid #007bff; /* Màu viền xanh đậm */
+        border-radius: 15px; /* Bo góc viền */
+        padding: 20px; /* Padding xung quanh đồ thị */
+        box-shadow: 0 6px 18px rgba(0, 123, 255, 0.15); /* Hiệu ứng đổ bóng */
+        background-color: white; /* Màu nền trắng */
+        width: 90%; /* Chiều rộng của khung */
+        margin: 0 auto; /* Canh giữa khung */
+      }
+      #combinedChart {
+        max-width: 100%; /* Đảm bảo đồ thị không vượt quá khung */
+      }
+    </style>
+  </head>
+  <body>
+    <ul class="menu">
+      <li>
+        <a href="#home" onclick="router('/')"
+          ><i class="fas fa-home"></i> Home</a
+        >
+      </li>
+      <li>
+        <a href="#news"><i class="fas fa-newspaper"></i> News</a>
+      </li>
+      <li>
+        <a href="#contact"><i class="fas fa-address-book"></i> Contact</a>
+      </li>
+      <li>
+        <a href="#about"><i class="fas fa-info-circle"></i> About</a>
+      </li>
+      <li>
+        <a href="#settings" id="settingsIcon"
+          ><i class="fas fa-cog"></i> Settings</a
+        >
+      </li>
+    </ul>
+    <div id="settingsOverlay" class="overlay">
+      <div class="settings-container">
+        <h2><i class="fas fa-cog"></i>Settings</h2>
+        <ul>
+          <h5 class="card-title" style="color: black; font-weight: bold;">
+            グラフの種類
+          </h5>
+          <select class="form-control" id="SettingsChartType">
+            <option value="1">棒グラフ</option>
+            <option value="2">円グラフ</option>
+          </select>
+        </ul>
+        <div class="button-container">
+          <button id="closeSettingsButton">Cancel</button>
+          <button id="HandleAccess">適用</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="row my-3 d-flex justify-content-around">
+        <div class="card mt-2 mx-2" style="width: 400px;">
+          <div class="card-body">
+            <h5 class="card-title" style="color: black;">期間</h5>
+            <input
+              type="text"
+              id="datepicker"
+              class="form-control"
+              placeholder="Select Date"
+            />
+          </div>
+        </div>
+        <div class="card mt-2 mx-2" style="width: 200px;">
+          <div class="card-body">
+            <h5 class="card-title" style="color: black;">直</h5>
+            <select id="chartSelector1" class="form-control">
+              <option value="1">前直</option>
+              <option value="2">後直</option>
+              <option value="3">両方</option>
+            </select>
+          </div>
+        </div>
+        <div class="card mt-2 mx-2" style="width: 200px;">
+          <div class="card-body">
+            <h5 class="card-title" style="color: black;">種類</h5>
+            <select id="chartSelector3" class="form-control">
+              <option value="1">プロント</option>
+              <option value="2">サード</option>
+            </select>
+          </div>
+        </div>
+        <div class="card mt-2 mx-2" style="width: 200px;">
+          <div class="card-body">
+            <h5 class="card-title" style="color: black;">項目</h5>
+            <select id="chartSelector4" class="form-control">
+              <option value="1">ライン停止</option>
+              <option value="2">作業遅れ</option>
+              <option value="3">呼出</option>
+              <option value="4">ポカヨケ</option>
+              <option value="5">締付異常</option>
+              <option value="6">設備異常</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-9">
+          <div class="container mt-5 text-center">
+            <h1 class="chart-title">平均チャート</h1>
+            <div class="chart-container">
+              <canvas id="combinedChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="container mt-5">
+            <div id="evaluation"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-container" id="pagecontainer">
+      <div class="page active" id="page1">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title black-text" style="color: black;">
+              平均回数
+            </h5>
+            <canvas id="chBar1" width="1200" height="500"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="page" id="page2">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title black-text" style="color: black;">
+              平均時間
+            </h5>
+            <canvas id="chBar2" width="1200" height="500"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="pagination" id="pagination">
+        <span onclick="switchPage(1)" class="active">●</span>
+        <span onclick="switchPage(2)">●</span>
+      </div>
+    </div>
+
+    <div class="container" id="pagecontainer1">
+      <div class="row">
+        <div class="col-md-6" style="width: 500px; height: 1200px;">
+          <div
+            class="card"
+            style="width: 500px; height: 1200px; margin-bottom: 100px;"
+          >
+            <div class="card-body" style="width: 500px; height: 1200px;">
+              <h5
+                class="card-title black-text"
+                style="
+                  color: black;
+                  text-align: center;
+                  font-weight: bold;
+                  font-size: 24px;
+                "
+              >
+                前直
+              </h5>
+
+              <h5
+                class="card-title black-text"
+                style="color: black; text-align: center; margin-top: 10px;"
+              >
+                時間
+              </h5>
+              <canvas id="myPieChart"></canvas>
+              <h5
+                class="card-title black-text"
+                style="color: black; text-align: center; margin-top: 50px;"
+              >
+                回数
+              </h5>
+              <canvas id="myPieChart2"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6" style="width: 500px; height: 1200px;">
+          <div
+            class="card"
+            style="width: 500px; height: 1200px; margin-left: 100px;"
+          >
+            <div class="card-body" style="width: 500px; height: 1200px;">
+              <h5
+                class="card-title black-text"
+                style="
+                  color: black;
+                  text-align: center;
+                  font-weight: bold;
+                  font-size: 24px;
+                "
+              >
+                後直
+              </h5>
+
+              <h5
+                class="card-title black-text"
+                style="color: black; text-align: center; margin-top: 10px;"
+              >
+                時間
+              </h5>
+              <canvas id="myPieChart3"></canvas>
+              <h5
+                class="card-title black-text"
+                style="color: black; text-align: center; margin-top: 50px;"
+              >
+                回数
+              </h5>
+              <canvas id="myPieChart4"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.4.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.0.0"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+    <script>
+      var data_Kaisu_S = [];
+      var data_Kaisu_T = [];
+      var data_Fun_S = [];
+      var data_Fun_T = [];
+      var day_Count = 0;
+      var foundItems = [];
+      var targetValue = [];
+      var locations = [];
+      var Name_Data = [];
+      var Teishi_Name = [];
+      var Sagyou_Name = [];
+      var Yobidashi_Name = [];
+      var Pokayoke_Name = [];
+      var Shimetsu_Name = [];
+      var Setsubi_Name = [];
+      var Nedan_Name = [];
+      var data1 = [];
+      var data2 = [];
+      function processData(data) {
+        data.forEach(function (item) {
+          if (item.Status === "停止") {
+            Teishi_Name.push(item.Koutei_Name);
+          }
+          if (item.Status === "作業遅れ") {
+            Sagyou_Name.push(item.Koutei_Name);
+          }
+          if (item.Status === "呼び出し") {
+            Yobidashi_Name.push(item.Koutei_Name);
+          }
+          if (item.Status === "ポカヨケ") {
+            Pokayoke_Name.push(item.Koutei_Name);
+          }
+          if (item.Status === "締付異常") {
+            Shimetsu_Name.push(item.Koutei_Name);
+          }
+          if (item.Status === "設備異常") {
+            Setsubi_Name.push(item.Koutei_Name);
+          }
+          if (item.Status === "目標値") {
+            Nedan_Name.push(item.Koutei_Name);
+            for (var i = 0; i < 7; i++) {
+              targetValue[i] = parseInt(Nedan_Name[i], 10);
+            }
+          }
+        });
+      }
+      function get_data() {
+        $.ajax({
+          url: "/api/Koutei/get_data",
+          type: "GET",
+          success: function (data) {
+            Name_Data = data;
+            processData(Name_Data);
+            locations = Teishi_Name;
+          },
+          error: function (jqXHR, textStatus, errorThrown) {
+            console.error("Error:", textStatus, errorThrown);
+          },
+        });
+      }
+      get_data();
+      var meanDelayCount = [];
+      var meanDelayTime = [];
+      var ctx = document.getElementById("combinedChart").getContext("2d");
+      var isHidden = false; // Biến để theo dõi trạng thái ẩn/hiển thị
+      var combinedChart;
+      var chart1;
+      var chart2;
+      var currentPage = 3;
+      $("#settingsIcon").hide();
+      document.getElementById("pagecontainer1").style.display = "none";
+      function getCurrentPage() {
+        return currentPage;
+      }
+      // function getRandomInt(min, max) {
+      //   return Math.floor(Math.random() * (max - min + 1)) + min;
+      // }
+      // function generateRandomData() {
+      //   var data = [];
+      //   for (var j = 0; j < 33; j++) {
+      //     data.push(getRandomInt(2, 100));
+      //   }
+      //   return data;
+      // }
+      function clearCanvas(canvasId) {
+        const canvas = document.getElementById(canvasId);
+        const context = canvas.getContext("2d");
+        context.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      function getSelectedValue() {
+        var selectElement = document.getElementById("chartSelector4");
+        var selectedValue = selectElement.value;
+        return selectedValue;
+      }
+
+      // Do thi thu 1 khi chon option ca 2 cai
+      function DrawChart1(data_Kaisu_S, data_Kaisu_T) {
+        console.log("DA chay vao ham ve bieu do Chart 1");
+        console.log("Data KaisuS, Data KaisuT", data_Kaisu_S, data_Kaisu_T);
+        DeleteChart("chBar1");
+        var ctx2 = document.getElementById("chBar1").getContext("2d");
+        var label = [];
+        if (getSelectedValue() == 1) label = Teishi_Name;
+        if (getSelectedValue() == 2) label = Sagyou_Name;
+        if (getSelectedValue() == 3) label = Yobidashi_Name;
+        if (getSelectedValue() == 4) label = Pokayoke_Name;
+        if (getSelectedValue() == 5) label = Shimetsu_Name;
+        if (getSelectedValue() == 6) label = Setsubi_Name;
+        clearCanvas("combinedChart");
+        ctx2.clearRect(
+          0,
+          0,
+          document.getElementById("chBar1").width,
+          document.getElementById("chBar1").height
+        );
+        chart1 = new Chart(ctx2, {
+          type: "bar",
+          data: {
+            labels: label,
+            datasets: [
+              {
+                label: "前直",
+                data: data_Kaisu_S,
+                backgroundColor: "#28a745",
+              },
+              {
+                label: "後直",
+                data: data_Kaisu_T,
+                backgroundColor: "#007bff",
+              },
+            ],
+          },
+          options: {
+            plugins: {
+              datalabels: {
+                anchor: "end",
+                align: "top",
+                formatter: function (value, context) {
+                  return value; // Hiển thị giá trị của cột
+                },
+              },
+            },
+            legend: {
+              position: "bottom",
+              display: true,
+            },
+            scales: {
+              x: {
+                barPercentage: 0.4,
+                categoryPercentage: 0.5,
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: "回数", // Đơn vị của trục tung
+                },
+              },
+            },
+          },
+          // Cấu hình plugin datalabels
+          plugins: [ChartDataLabels],
+        });
+      }
+      function DeleteChart(chartId) {
+        var chartCanvas = document.getElementById(chartId);
+        if (chartCanvas) {
+          var chartInstance = Chart.getChart(chartCanvas);
+          if (chartInstance) {
+            chartInstance.destroy();
+          }
+        }
+      }
+
+      //Do thi thu 2 khi chon option ca 2
+      function DrawChart2(data_Fun_S, data_Fun_T) {
+        console.log("DA chay vao ham ve bieu do Chart 2");
+        console.log("Data FunS, Data FunT", data_Fun_S, data_Fun_T);
+        DeleteChart("chBar2");
+        var label = [];
+        var ctx3 = document.getElementById("chBar2").getContext("2d");
+
+        if (getSelectedValue() == 1) label = Teishi_Name;
+        if (getSelectedValue() == 2) label = Sagyou_Name;
+        if (getSelectedValue() == 3) label = Yobidashi_Name;
+        if (getSelectedValue() == 4) label = Pokayoke_Name;
+        if (getSelectedValue() == 5) label = Shimetsu_Name;
+        if (getSelectedValue() == 6) label = Setsubi_Name;
+        ctx3.clearRect(
+          0,
+          0,
+          document.getElementById("chBar2").width,
+          document.getElementById("chBar2").height
+        );
+        chart2 = new Chart(ctx3, {
+          type: "bar",
+          data: {
+            labels: label,
+            datasets: [
+              {
+                label: "前直",
+                data: data_Fun_S,
+                backgroundColor: "#28a745",
+              },
+              {
+                label: "後直",
+                data: data_Fun_T,
+                backgroundColor: "#007bff",
+              },
+            ],
+          },
+          options: {
+            plugins: {
+              datalabels: {
+                anchor: "end",
+                align: "top",
+                formatter: function (value, context) {
+                  return value; // Hiển thị giá trị của cột
+                },
+              },
+            },
+            legend: {
+              position: "bottom",
+              display: true,
+            },
+            scales: {
+              x: {
+                barPercentage: 0.4,
+                categoryPercentage: 0.5,
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: "分", // Đơn vị của trục tung
+                },
+              },
+            },
+          },
+          plugins: [ChartDataLabels],
+        });
+      }
+      DrawChart2(data_Fun_S, data_Fun_T);
+      function getTopNValues(arr, n) {
+        // Create a copy of the array to avoid modifying the original array
+        var arrCopy = [...arr];
+        var values = [];
+        var indexes = [];
+        for (var i = 0; i < n; i++) {
+          var maxIndex = arrCopy.reduce(
+            (maxIndex, currentValue, currentIndex, array) =>
+              currentValue > array[maxIndex] ? currentIndex : maxIndex,
+            0
+          );
+          indexes.push(maxIndex);
+          values.push(arrCopy[maxIndex]);
+          arrCopy[maxIndex] = -Infinity;
+        }
+        return { indexes, values };
+      }
+
+      function GetMax(a, b) {
+        var top3Count = getTopNValues(a, 3);
+        var top3Time = getTopNValues(b, 3);
+        var countTableHtml =
+          "<h3 class='text-center chart-title1 '>呼出回数ワースト</h3><table class='table'><thead><tr><th scope='col'>工程名</th><th scope='col'>回数</th></tr></thead><tbody>";
+        top3Count.indexes.forEach((index, i) => {
+          countTableHtml += `<tr><td>${locations[index]}</td><td>${top3Count.values[i]}</td></tr>`;
+        });
+        countTableHtml += "</tbody></table>";
+
+        var timeTableHtml =
+          "<h3 class='text-center chart-title1'>呼出平均時間ワースト</h3><table class='table'><thead><tr><th scope='col'>工程名</th><th scope='col'>分</th></tr></thead><tbody>";
+        top3Time.indexes.forEach((index, i) => {
+          timeTableHtml += `<tr><td>${locations[index]}</td><td>${top3Time.values[i]}</td></tr>`;
+        });
+        timeTableHtml += "</tbody></table>";
+        document.getElementById("evaluation").innerHTML =
+          countTableHtml + timeTableHtml;
+      }
+      const annotationPlugin = window["chartjs-plugin-annotation"];
+      const dataLabelsPlugin = window["ChartDataLabels"];
+      Chart.register(annotationPlugin, dataLabelsPlugin);
+      ctx.clearRect(
+        0,
+        0,
+        document.getElementById("combinedChart").width,
+        document.getElementById("combinedChart").height
+      );
+
+      combinedChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: Teishi_Name,
+          datasets: [
+            {
+              label: "回数",
+              data: meanDelayCount,
+              backgroundColor: "rgba(75, 192, 192, 0.2)",
+              borderColor: "rgba(75, 192, 192, 1)",
+              borderWidth: 1,
+              yAxisID: "count",
+              datalabels: {
+                // Chỉ định datalabels cho dataset này
+                anchor: "end",
+                align: "top",
+                color: "black",
+                font: {
+                  weight: "bold",
+                },
+              },
+            },
+            {
+              label: "分",
+              data: meanDelayTime,
+              type: "line",
+              fill: false,
+              borderColor: "black",
+              backgroundColor: "black",
+              tension: 0.1,
+              yAxisID: "time",
+              datalabels: {
+                // Chỉ định datalabels cho dataset này
+                display: false,
+              },
+            },
+          ],
+        },
+        options: {
+          scales: {
+            count: {
+              type: "linear",
+              position: "right",
+              title: {
+                display: true,
+                text: "回数",
+                rotation: 30,
+              },
+              grid: {
+                display: false, // Xóa grid lines trên trục count
+              },
+            },
+            time: {
+              type: "linear",
+              position: "left",
+              title: {
+                display: true,
+                text: "分",
+                rotation: 45,
+              },
+              grid: {
+                display: false, // Xóa grid lines trên trục time
+              },
+            },
+            x: {
+              grid: {
+                display: false, // Xóa grid lines trên trục X
+              },
+            },
+          },
+          plugins: {
+            annotation: {
+              annotations: {
+                targetLine: {
+                  type: "line",
+                  yMin: targetValue[0], // Giá trị mục tiêu
+                  yMax: targetValue[0],
+                  borderColor: "red",
+                  borderWidth: 2,
+                  borderDash: [10, 5],
+                  yScaleID: "time",
+                  display: targetValue !== 0,
+                  label: {
+                    content: targetValue.toString() + "分", // Hiển thị giá trị của thanh target line
+                    // display: true,
+                    display: targetValue !== 0,
+                    position: "end",
+                    backgroundColor: "red",
+                    color: "white",
+                    font: {
+                      size: 12,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      GetMax(
+        combinedChart.data.datasets[0].data,
+        combinedChart.data.datasets[1].data
+      );
+    </script>
+
+    <script>
+      $(document).ready(function () {
+        var selectedStartDate = null;
+        var selectedEndDate = null;
+        var currentSelection = 0;
+        $("#datepicker")
+          .datepicker({
+            format: "dd/mm/yyyy",
+            autoclose: false,
+            clearBtn: true,
+            multidate: true,
+            multidateSeparator: " - ",
+            beforeShowDay: function (date) {
+              if (
+                date.getTime() ===
+                  (selectedStartDate ? selectedStartDate.getTime() : null) ||
+                date.getTime() ===
+                  (selectedEndDate ? selectedEndDate.getTime() : null)
+              ) {
+                return {
+                  classes: "active",
+                };
+              }
+            },
+          })
+          .on("changeDate", function (e) {
+            var selectedDate = e.date;
+
+            if (currentSelection === 0) {
+              selectedStartDate = selectedDate;
+              currentSelection = 1;
+            } else if (currentSelection === 1) {
+              selectedEndDate = selectedDate;
+              currentSelection = 0;
+            }
+            if (selectedStartDate && selectedEndDate) {
+              $(this).datepicker("hide");
+              // selectedStartDate = null;
+              // selectedEndDate = null;
+            }
+          });
+        $("#datepicker").on("clearDate", function () {
+          selectedStartDate = null;
+          selectedEndDate = null;
+          currentSelection = 0;
+        });
+        $("#datepicker,#chartSelector3,#chartSelector1,#chartSelector4").change(
+          function () {
+            foundItems = [];
+            var item_array = [];
+            var selectedValue = $("#chartSelector4").val();
+            data1 = Array(40).fill(0);
+            data2 = Array(40).fill(0);
+            ctx.clearRect(
+              0,
+              0,
+              document.getElementById("combinedChart").width,
+              document.getElementById("combinedChart").height
+            );
+            var startDateFormatted = moment(selectedStartDate).format(
+              "YYYY-MM-DD"
+            );
+            var endDateFormatted = moment(selectedEndDate).format("YYYY-MM-DD");
+            var startDate = moment(startDateFormatted, "YYYY-MM-DD");
+            var endDate = moment(endDateFormatted, "YYYY-MM-DD");
+
+            console.log(startDateFormatted, endDateFormatted);
+
+            var selectedShift =
+              $("#chartSelector1").val() == 1 ? "前直" : "後直";
+            var selectedLocation =
+              $("#chartSelector3").val() == 1 ? "フロント" : "サード";
+            var selectedPositon;
+            var selectedPositon1;
+            if ($("#chartSelector3").val() == 1) {
+              if ($("#chartSelector4").val() == 1) {
+                selectedPositon = "Fr停止";
+                selectedPositon1 = "";
+              } else if ($("#chartSelector4").val() == 2) {
+                selectedPositon = "Fr作業遅れ1";
+                selectedPositon1 = "Fr作業遅れ2";
+              } else if ($("#chartSelector4").val() == 3) {
+                selectedPositon = "Fr呼出1";
+                selectedPositon1 = "Fr呼出2";
+              } else if ($("#chartSelector4").val() == 4) {
+                selectedPositon = "Frポカヨケ";
+                selectedPositon1 = "";
+              } else if ($("#chartSelector4").val() == 5) {
+                selectedPositon = "Fr締付";
+                selectedPositon1 = "";
+              } else if ($("#chartSelector4").val() == 6) {
+                selectedPositon = "Fr設備";
+                selectedPositon1 = "";
+              }
+            } else {
+              if ($("#chartSelector4").val() == 1) {
+                selectedPositon = "停止";
+                selectedPositon1 = "";
+              } else if ($("#chartSelector4").val() == 2) {
+                selectedPositon = "作業遅れ1";
+                selectedPositon1 = "作業遅れ2";
+              } else if ($("#chartSelector4").val() == 3) {
+                selectedPositon = "呼出1";
+                selectedPositon1 = "呼出2";
+              } else if ($("#chartSelector4").val() == 4) {
+                selectedPositon = "ポカヨケ";
+                selectedPositon1 = "";
+              } else if ($("#chartSelector4").val() == 5) {
+                selectedPositon = "締付";
+                selectedPositon1 = "";
+              } else if ($("#chartSelector4").val() == 6) {
+                selectedPositon = "設備";
+                selectedPositon1 = "";
+              }
+            }
+
+            $.ajax({
+              type: "GET",
+              url: "/api/Fulltable/get_data",
+              success: function (data) {
+                var dataFound = false;
+                data.forEach(function (item) {
+                  var itemDate = moment(item.Date, "YYYY-MM-DD");
+                  if ($("#chartSelector1").val() != 3) {
+                    if (
+                      itemDate.isBetween(
+                        startDateFormatted,
+                        endDateFormatted,
+                        null,
+                        "[]"
+                      ) &&
+                      item.Shift === selectedShift &&
+                      item.Location === selectedLocation &&
+                      (item.Position === selectedPositon ||
+                        item.Position === selectedPositon1)
+                    ) {
+                      foundItems.push(item);
+                      dataFound = true;
+                    }
+                  } else {
+                    if (
+                      itemDate.isBetween(
+                        startDateFormatted,
+                        endDateFormatted,
+                        null,
+                        "[]"
+                      ) &&
+                      item.Location === selectedLocation &&
+                      (item.Position === selectedPositon ||
+                        item.Position === selectedPositon1)
+                    ) {
+                      foundItems.push(item);
+                      dataFound = true;
+                    }
+                  }
+                });
+
+                if (!dataFound) {
+                  console.log("データがない");
+                }
+
+                console.log("-----------------------------------------------");
+                foundItems.forEach(function (item) {
+                  item_array.push(item);
+                });
+
+                var day_Count = endDate.diff(startDate, "days") + 1;
+                console.log("Day count:", day_Count);
+                console.log("Found Item:", item_array.length);
+                console.log(item_array);
+                // Kiểm tra xem các phần tử trong item_array có hợp lệ không
+                for (var i = 0; i < item_array.length; i++) {
+                  for (var j = 1; j <= 38; j++) {
+                    if (
+                      $("#chartSelector4").val() == 2 ||
+                      $("#chartSelector4").val() == 3
+                    ) {
+                      if (
+                        item_array[i].Position == "Fr作業遅れ1" ||
+                        item_array[i].Position == "作業遅れ1" ||
+                        item_array[i].Position == "Fr呼出1" ||
+                        item_array[i].Position == "呼出1"
+                      ) {
+                        if (j <= 15 && item_array[i].Koutei == j.toString()) {
+                          var delayCount = parseInt(
+                            item_array[i].DelayCount,
+                            10
+                          );
+                          var delayTime = parseInt(item_array[i].DelayTime, 10);
+                          data1[j - 1] = data1[j - 1] + delayCount;
+                          data2[j - 1] = data2[j - 1] + delayTime / 60;
+                        }
+                      } else {
+                        if (
+                          j > 15 &&
+                          j < 23 &&
+                          item_array[i].Koutei == (j - 15).toString()
+                        ) {
+                          var delayCount = parseInt(
+                            item_array[i].DelayCount,
+                            10
+                          );
+                          var delayTime = parseInt(item_array[i].DelayTime, 10);
+                          data1[j - 1] = data1[j - 1] + delayCount;
+                          data2[j - 1] = data2[j - 1] + delayTime / 60;
+                        }
+                      }
+                      if (
+                        j > 22 &&
+                        item_array[i].Koutei == (j - 12).toString()
+                      ) {
+                        var delayCount = parseInt(item_array[i].DelayCount, 10);
+                        var delayTime = parseInt(item_array[i].DelayTime, 10);
+                        data1[j - 1] = data1[j - 1] + delayCount;
+                        data2[j - 1] = data2[j - 1] + delayTime / 60;
+                      }
+                    } else {
+                      if (item_array[i].Koutei == j.toString()) {
+                        var delayCount = parseInt(item_array[i].DelayCount, 10);
+                        var delayTime = parseInt(item_array[i].DelayTime, 10);
+                        data1[j - 1] = data1[j - 1] + delayCount;
+                        data2[j - 1] = data2[j - 1] + delayTime / 60;
+                      }
+                    }
+                  }
+                }
+                for (var i = 0; i <= 38; i++) {
+                  data1[i] = (data1[i] / day_Count).toFixed(0);
+                  data2[i] = (data2[i] / day_Count).toFixed(1);
+                }
+                console.log("data1:", data1);
+                console.log("data2:", data2);
+                DrawChart1(data1, data2);
+
+                // Gọi hàm updateChart_location với data1 và data2
+                // updateChart_location(data1, data2);
+                updateChart_position(selectedValue, data1, data2);
+              },
+              error: function (xhr, status, error) {
+                console.log("Lỗi khi gửi yêu cầu:", error);
+              },
+            });
+          }
+        );
+
+        $("#chartSelector1").change(function () {
+          var selectedOption = $(this).val();
+          if (selectedOption === "3") {
+            $("#combinedChart").parent().parent().parent().hide();
+            // Ẩn cả container chứa biểu đồ và evaluation
+            document.getElementsByClassName("page-container")[0].style.display =
+              "flex";
+            document.getElementById("pagecontainer1").style.display = "none";
+            $("#evaluation").hide();
+            currentPage = 1;
+            // var Chart1_Array = [];
+            // var startDateFormatted = moment(selectedStartDate).format(
+            //   "YYYY-MM-DD"
+            // );
+            // var endDateFormatted = moment(selectedEndDate).format("YYYY-MM-DD");
+            // var startDate = moment(startDateFormatted, "YYYY-MM-DD");
+            // var endDate = moment(endDateFormatted, "YYYY-MM-DD");
+            // var selectedValue = $("#chartSelector4").val();
+            // var selectedLocation =
+            //   $("#chartSelector3").val() == 1 ? "フロント" : "サード";
+            // var selectedPositon;
+            // var selectedPositon1;
+            // if ($("#chartSelector3").val() == 1) {
+            //   if ($("#chartSelector4").val() == 1) {
+            //     selectedPositon = "Fr停止";
+            //     selectedPositon1 = "";
+            //   } else if ($("#chartSelector4").val() == 2) {
+            //     selectedPositon = "Fr作業遅れ1";
+            //     selectedPositon1 = "Fr作業遅れ2";
+            //   } else if ($("#chartSelector4").val() == 3) {
+            //     selectedPositon = "Fr呼出1";
+            //     selectedPositon1 = "Fr呼出2";
+            //   } else if ($("#chartSelector4").val() == 4) {
+            //     selectedPositon = "Frポカヨケ";
+            //     selectedPositon1 = "";
+            //   } else if ($("#chartSelector4").val() == 5) {
+            //     selectedPositon = "Fr締付";
+            //     selectedPositon1 = "";
+            //   } else if ($("#chartSelector4").val() == 6) {
+            //     selectedPositon = "Fr設備";
+            //     selectedPositon1 = "";
+            //   }
+            // } else {
+            //   if ($("#chartSelector4").val() == 1) {
+            //     selectedPositon = "停止";
+            //     selectedPositon1 = "";
+            //   } else if ($("#chartSelector4").val() == 2) {
+            //     selectedPositon = "作業遅れ1";
+            //     selectedPositon1 = "作業遅れ2";
+            //   } else if ($("#chartSelector4").val() == 3) {
+            //     selectedPositon = "呼出1";
+            //     selectedPositon1 = "呼出2";
+            //   } else if ($("#chartSelector4").val() == 4) {
+            //     selectedPositon = "ポカヨケ";
+            //     selectedPositon1 = "";
+            //   } else if ($("#chartSelector4").val() == 5) {
+            //     selectedPositon = "締付";
+            //     selectedPositon1 = "";
+            //   } else if ($("#chartSelector4").val() == 6) {
+            //     selectedPositon = "設備";
+            //     selectedPositon1 = "";
+            //   }
+            // }
+            // $.ajax({
+            //   type: "GET",
+            //   url: "/api/Fulltable/get_data",
+            //   success: function (data) {
+            //     var dataFound = false;
+            //     data.forEach(function (item) {
+            //       var itemDate = moment(item.Date, "YYYY-MM-DD");
+            //       if (
+            //         itemDate.isBetween(
+            //           startDateFormatted,
+            //           endDateFormatted,
+            //           null,
+            //           "[]"
+            //         ) &&
+            //         item.Shift === "前直" &&
+            //         item.Location === selectedLocation &&
+            //         (item.Position === selectedPositon ||
+            //           item.Position === selectedPositon1)
+            //       ) {
+            //         foundItems.push(item);
+            //         dataFound = true;
+            //       }
+            //     });
+
+            //     if (!dataFound) {
+            //       console.log("データがない");
+            //     }
+
+            //     console.log("-----------------------------------------------");
+            //     foundItems.forEach(function (item) {
+            //       Chart1_Array.push(item);
+            //     });
+
+            //     console.log("Found Item:", Chart1_Array.length);
+            //     console.log("Day la Chart_Array", Chart1_Array);
+            //     // Kiểm tra xem các phần tử trong item_array có hợp lệ không
+            //     for (var i = 0; i < Chart1_Array.length; i++) {
+            //       for (var j = 1; j <= 38; j++) {
+            //         if (
+            //           $("#chartSelector4").val() == 2 ||
+            //           $("#chartSelector4").val() == 3
+            //         ) {
+            //           if (
+            //             Chart1_Array[i].Position == "Fr作業遅れ1" ||
+            //             Chart1_Array[i].Position == "作業遅れ1" ||
+            //             Chart1_Array[i].Position == "Fr呼出1" ||
+            //             Chart1_Array[i].Position == "呼出1"
+            //           ) {
+            //             if (j <= 15 && Chart1_Array[i].Koutei == j.toString()) {
+            //               var delayCount = parseInt(
+            //                 Chart1_Array[i].DelayCount,
+            //                 10
+            //               );
+            //               data_Kaisu_S[j - 1] =
+            //                 data_Kaisu_S[j - 1] + delayCount;
+            //             }
+            //           } else {
+            //             if (
+            //               j > 15 &&
+            //               j < 23 &&
+            //               Chart1_Array[i].Koutei == (j - 15).toString()
+            //             ) {
+            //               var delayCount = parseInt(
+            //                 Chart1_Array[i].DelayCount,
+            //                 10
+            //               );
+            //               data_Kaisu_S[j - 1] =
+            //                 data_Kaisu_S[j - 1] + delayCount;
+            //             }
+            //           }
+            //           if (
+            //             j > 22 &&
+            //             Chart1_Array[i].Koutei == (j - 12).toString()
+            //           ) {
+            //             var delayCount = parseInt(
+            //               Chart1_Array[i].DelayCount,
+            //               10
+            //             );
+            //             data_Kaisu_S[j - 1] = data_Kaisu_S[j - 1] + delayCount;
+            //           }
+            //         } else {
+            //           if (Chart1_Array[i].Koutei == j.toString()) {
+            //             var delayCount = parseInt(
+            //               Chart1_Array[i].DelayCount,
+            //               10
+            //             );
+            //             data_Kaisu_S[j - 1] = data_Kaisu_S[j - 1] + delayCount;
+            //           }
+            //         }
+            //       }
+            //     }
+            //     for (var i = 0; i <= 38; i++) {
+            //       data_Kaisu_S[i] = (data_Kaisu_S[i] / day_Count).toFixed(0);
+            //     }
+            //     console.log("DAy la KaisuS", data_Kaisu_S);
+            //     console.log("DAy la KaisuT", data_Kaisu_T);
+            DrawChart1(data_Kaisu_S, data_Kaisu_T);
+
+            //     updateChart_position(selectedValue, data1, data2);
+            //   },
+            //   error: function (xhr, status, error) {
+            //     console.log("Lỗi khi gửi yêu cầu:", error);
+            //   },
+            // });
+
+            $("#settingsIcon").show();
+          } else {
+            currentPage = 3;
+            $("#evaluation").show();
+            // updateChart_location();
+            document.getElementById("pagecontainer1").style.display = "none";
+            $("#settingsIcon").hide();
+            $("#combinedChart").parent().parent().parent().show();
+            // Hiển thị container chứa biểu đồ và evaluation khi chọn các option khác
+            document.getElementsByClassName("page-container")[0].style.display =
+              "none";
+          }
+        });
+      });
+
+      document.addEventListener("DOMContentLoaded", function () {
+        document.getElementsByClassName("page-container")[0].style.display =
+          "none";
+      });
+
+      async function router(path) {
+        try {
+          const response = await fetch(path, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+          if (response.ok) {
+            window.location.href = path;
+          } else {
+            console.error("Error:", response.statusText);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+      function switchPage(pageNumber) {
+        var pages = document.getElementsByClassName("page");
+        var pagination = document
+          .getElementsByClassName("pagination")[0]
+          .getElementsByTagName("span");
+
+        for (var i = 0; i < pages.length; i++) {
+          if (i === pageNumber - 1) {
+            pages[i].classList.add("active");
+            pagination[i].classList.add("active");
+            if (i === 0) {
+              DrawChart1(data_Kaisu_S, data_Kaisu_T);
+              currentPage = i + 1;
+            }
+            if (i === 1) {
+              DrawChart2(data_Fun_S, data_Fun_T);
+              currentPage = i + 1;
+            }
+          } else {
+            pages[i].classList.remove("active");
+            pagination[i].classList.remove("active");
+          }
+        }
+      }
+
+      // Khi nhấn vào nút Close
+    </script>
+
+    <!-- Xu ly Menu -->
+    <script>
+      document
+        .getElementById("settingsIcon")
+        .addEventListener("click", function () {
+          document.getElementById("settingsOverlay").style.display = "block";
+        });
+      function updateChartSize() {
+        var Pagecontainer1 = document.getElementById("pagecontainer1");
+
+        var MyPieChart = document.getElementById("myPieChart");
+        var MyPieChart2 = document.getElementById("myPieChart2");
+        var MyPieChart3 = document.getElementById("myPieChart3");
+        var MyPieChart4 = document.getElementById("myPieChart4");
+        if (MyPieChart && Pagecontainer1 && MyPieChart2) {
+          Pagecontainer1.style.width = "100%";
+          Pagecontainer1.style.height = "100%";
+        }
+      }
+      function DrawPie() {
+        DeleteChart("myPieChart");
+        DeleteChart("myPieChart2");
+        DeleteChart("myPieChart3");
+        DeleteChart("myPieChart4");
+        var ctx = document.getElementById("myPieChart").getContext("2d");
+        var ctx2 = document.getElementById("myPieChart2").getContext("2d");
+        var ctx3 = document.getElementById("myPieChart3").getContext("2d");
+        var ctx4 = document.getElementById("myPieChart4").getContext("2d");
+        var data = {
+          datasets: [
+            {
+              label: "Value",
+              data: Array.from(
+                { length: 30 },
+                () => Math.floor(Math.random() * 20) + 1
+              ),
+              backgroundColor: Array.from(
+                { length: 30 },
+                () =>
+                  `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(
+                    Math.random() * 255
+                  )}, ${Math.floor(Math.random() * 255)}, 0.2)`
+              ),
+              borderColor: Array.from(
+                { length: 30 },
+                () =>
+                  `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(
+                    Math.random() * 255
+                  )}, ${Math.floor(Math.random() * 255)}, 1)`
+              ),
+              borderWidth: 1,
+            },
+          ],
+        };
+        var options = {
+          legend: {
+            display: false, // Tắt chú thích
+          },
+          plugins: {
+            datalabels: {
+              display: false, // Tắt hiển thị nhãn dữ liệu
+            },
+          },
+        };
+        var myPieChart = new Chart(ctx, {
+          type: "pie",
+          data: data,
+          options: options,
+        });
+        var myPieChart2 = new Chart(ctx2, {
+          type: "pie",
+          data: data,
+          options: options,
+        });
+        var myPieChart3 = new Chart(ctx3, {
+          type: "pie",
+          data: data,
+          options: options,
+        });
+        var myPieChart4 = new Chart(ctx4, {
+          type: "pie",
+          data: data,
+          options: options,
+        });
+        updateChartSize();
+      }
+
+      document
+        .getElementById("closeSettingsButton")
+        .addEventListener("click", function () {
+          document.getElementById("settingsOverlay").style.display = "none";
+        });
+
+      document
+        .getElementById("HandleAccess")
+        .addEventListener("click", function () {
+          document.getElementById("settingsOverlay").style.display = "none";
+          var selectedOption = $("#SettingsChartType").val();
+          if (selectedOption === "2") {
+            document.getElementById("pagecontainer").style.display = "none";
+            document.getElementById("pagecontainer1").style.display = "flex";
+            DeleteChart("chBar1");
+            DeleteChart("chBar2");
+            DrawPie();
+          } else {
+            document.getElementById("pagecontainer").style.display = "flex";
+            document.getElementById("pagecontainer1").style.display = "none";
+            DeleteChart("myPieChart");
+            DrawChart1(data_Kaisu_S, data_Kaisu_T);
+            DrawChart2(data_Fun_S, data_Fun_T);
+          }
+        });
+      function isIntegerArray(arr) {
+        return arr.every((element) => Number.isInteger(element));
+      }
+
+      function updateChart_position(selectedValue, data1, data2) {
+        var chartLabels1 = [];
+        var chartLabels2 = [];
+        var length;
+        if (selectedValue === "1") {
+          chartLabels1 = Teishi_Name;
+          locations = Teishi_Name;
+        } else if (selectedValue === "2") {
+          chartLabels1 = Sagyou_Name;
+          locations = Sagyou_Name;
+        } else if (selectedValue === "3") {
+          chartLabels1 = Yobidashi_Name;
+          locations = Yobidashi_Name;
+        } else if (selectedValue === "4") {
+          chartLabels1 = Pokayoke_Name;
+          locations = Pokayoke_Name;
+        } else if (selectedValue === "5") {
+          chartLabels1 = Shimetsu_Name;
+          locations = Shimetsu_Name;
+        } else if (selectedValue === "6") {
+          chartLabels2 = Setsubi_Name;
+          locations = Setsubi_Name;
+        }
+        length = locations.length;
+        if (getCurrentPage() === 1 && chart1) {
+          chart1.data.labels =
+            selectedValue === "6" ? chartLabels2 : chartLabels1;
+          chart1.data.datasets[0].data = data1;
+          chart1.data.datasets[1].data = data2;
+          chart1.update();
+        }
+        if (getCurrentPage() === 2 && chart2) {
+          chart2.data.labels =
+            selectedValue === "6" ? chartLabels2 : chartLabels1;
+          chart2.data.datasets[0].data = data1;
+          chart2.data.datasets[1].data = data2;
+          chart2.update();
+        }
+
+        if (getCurrentPage() === 3 && combinedChart) {
+          var arr1 = [];
+          var arr2 = [];
+          for (var i = 0; i < 40; i++) {
+            arr1[i] = parseFloat(data1[i]);
+            arr2[i] = parseFloat(data2[i]);
+          }
+          // console.log(arr1, arr2);
+          combinedChart.data.labels =
+            selectedValue === "6" ? chartLabels2 : chartLabels1;
+          combinedChart.data.datasets[0].data = arr1;
+          combinedChart.data.datasets[1].data = arr2;
+
+          if (targetValue[$("#chartSelector4").val() - 1] == 0) {
+            combinedChart.options.plugins.annotation.annotations.targetLine.display = false;
+          } else {
+            combinedChart.options.plugins.annotation.annotations.targetLine.display = true;
+            combinedChart.options.plugins.annotation.annotations.targetLine.yMin =
+              targetValue[$("#chartSelector4").val() - 1];
+            combinedChart.options.plugins.annotation.annotations.targetLine.yMax =
+              targetValue[$("#chartSelector4").val() - 1];
+            combinedChart.options.plugins.annotation.annotations.targetLine.label.content =
+              targetValue[$("#chartSelector4").val() - 1].toString() + "分";
+          }
+          combinedChart.update();
+
+          GetMax(
+            combinedChart.data.datasets[0].data,
+            combinedChart.data.datasets[1].data
+          );
+        }
+      }
+    </script>
+    <div id="overlay" class="overlay"></div>
+  </body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modern Web Design</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <style>
+      body {
+        /* font-family: Arial, sans-serif; */
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+
+      .header {
+        background-color: #333;
+        color: white;
+        text-align: center;
+        padding: 10px;
+      }
+      .menu {
+        display: flex;
+        align-items: center;
+        background-color: #333;
+        color: white;
+        padding: 10px;
+        position: relative; /* Thêm dòng này */
+        z-index: 1; /* Thêm dòng này */
+      }
+      .menu.open {
+        flex-direction: column; /* Thêm dòng này */
+        align-items: flex-start;
+      }
+      .menu.open .update-button {
+        margin-top: 20px; /* Thêm dòng này */
+      }
+      .menu-list {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background-color: #000; /* Đổi màu nền thành đen */
+        color: #fff; /* Màu chữ trắng */
+        padding: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        z-index: 1;
+      }
+
+      .menu-list.open {
+        display: block;
+      }
+
+      .menu-list ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .menu-list li {
+        padding: 10px 20px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      .side-menu a i {
+        margin-right: 10px;
+      }
+      .menu-list li:hover {
+        background-color: #333; /* Đổi màu nền khi hover */
+      }
+
+      .menu.open .menu-list {
+        display: block; /* Hiển thị danh sách khi menu được mở */
+      }
+      /* CSS cho biểu tượng menu */
+      .menu-icon {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+      }
+      .menu-icon div {
+        width: 100%;
+        height: 4px;
+        background-color: white;
+        transition: all 0.3s;
+      }
+      /* CSS cho nút Update Data */
+      .update-button {
+        padding: 10px 20px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .content {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        padding: 20px;
+      }
+
+      .box {
+        width: 300px;
+        margin: 20px;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s, opacity 0.3s;
+      }
+
+      .box:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .box img {
+        width: 100%;
+        height: auto;
+        border-radius: 5px;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .fade-in {
+        animation: fadeIn 1s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateY(-50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .slide-in {
+        animation: slideIn 0.5s ease-out;
+      }
+      .box img {
+        width: 100%;
+        height: 300px; /* hoặc bất kỳ chiều cao nào bạn muốn */
+        object-fit: cover; /* để ảnh không bị bể */
+      }
+      .footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        padding: 10px;
+        background-color: #333;
+        color: white;
+        width: 100%;
+        text-align: center;
+        font-size: 14px;
+      }
+      .toolbar {
+        background-color: #333;
+        color: white;
+        padding: 15px;
+        text-align: left;
+        transition: margin-left 0.5s;
+      }
+
+      .menu-button {
+        font-size: 24px;
+        cursor: pointer;
+      }
+
+      .side-menu {
+        height: 100%;
+        width: 0;
+        position: fixed;
+        z-index: 1;
+        top: 0;
+        left: 0;
+        background-color: #111;
+        overflow-x: hidden;
+        transition: width 0.5s;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .side-menu a {
+        padding: 20px;
+        text-decoration: none;
+        font-size: 25px;
+        color: white;
+        text-align: center;
+        display: block;
+        transition: background-color 0.3s;
+        cursor: pointer;
+        position: relative; /* Tạo vị trí tương đối cho phần gạch ngang */
+      }
+
+      .side-menu a::before,
+      .side-menu a::after {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 1px; /* Chiều cao của phần gạch */
+        background-color: #333; /* Màu sắc của phần gạch */
+      }
+
+      .side-menu a::before {
+        top: 0;
+        left: 0;
+      }
+
+      .side-menu a::after {
+        bottom: 0;
+        left: 0;
+      }
+
+      .side-menu a:last-child::after {
+        display: none; /* Loại bỏ gạch ngang ở item cuối cùng */
+      }
+
+      .side-menu a:hover {
+        background-color: #575757;
+      }
+
+      .side-menu a i {
+        margin-right: 10px;
+      }
+
+      body.menu-open .toolbar {
+        margin-left: 250px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="menu">
+        <div class="toolbar">
+          <div class="menu-button" onclick="toggleMenu()">☰</div>
+        </div>
+        <div id="side-menu" class="side-menu">
+          <a href="http://araco.co.jp/" target="_blank"
+            ><i class="fas fa-home"></i> Araco</a
+          >
+          <a onclick="updateData()"><i class="fas fa-sync"></i> Update Data </a>
+          <a onclick="router('/setting')"><i class="fas fa-cog"></i>Settings</a>
+          <a href="#"><i class="fas fa-info-circle"></i> About</a>
+        </div>
+        <img src="image/Araco.png" style="height: 100px; margin-left: 440px;" />
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="box fade-in" onclick="router('/about')">
+        <img src="/image/day1.png" alt="Image 1" />
+        <h2>データを表示</h2>
+        <p>1日分の地点ごとのデータを表示します。</p>
+      </div>
+      <div class="box fade-in" onclick="router('/crud')">
+        <img src="/image/kikan.png" alt="Image 2" />
+        <h2>データを評価</h2>
+        <p>一定期間のデータを評価します(最長1ヶ月)。</p>
+      </div>
+    </div>
+    <div class="footer">
+      &copy; Web Design By IT 専門
+    </div>
+    <script>
+      // Trigger animations when scrolled into view
+      const boxes = document.querySelectorAll(".box");
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("slide-in");
+            }
+          });
+        },
+        { threshold: 0.5 }
+      );
+
+      boxes.forEach((box) => {
+        observer.observe(box);
+      });
+
+      function toggleMenu() {
+        var menu = document.getElementById("side-menu");
+        var body = document.body;
+
+        if (menu.style.width === "250px") {
+          menu.style.width = "0";
+          body.classList.remove("menu-open");
+        } else {
+          menu.style.width = "250px";
+          body.classList.add("menu-open");
+        }
+      }
+      async function router(path) {
+        try {
+          const response = await fetch(path, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+          if (response.ok) {
+            window.location.href = path;
+          } else {
+            console.error("Error:", response.statusText);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+    </script>
+    <script>
+      async function updateData() {
+        try {
+          const response = await fetch("/update-data", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+          const data = await response.text();
+          console.log(data); // Log kết quả từ server
+          alert("Update Success");
+        } catch (error) {
+          console.error("Error updating data:", error);
+        }
+      }
+    </script>
+  </body>
+</html>

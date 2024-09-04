@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+
+      header {
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        padding: 10px 0;
+      }
+
+      main {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        margin-top: 0;
+      }
+
+      form {
+        margin-top: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+
+      input[type="text"],
+      input[type="email"],
+      input[type="password"] {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      button {
+        padding: 10px 20px;
+        background-color: #333;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #555;
+      }
+
+      footer {
+        text-align: center;
+        margin-top: 20px;
+        padding: 10px 0;
+        background-color: #333;
+        color: #fff;
+      }
+      select {
+        height: 30px; /* Adjust the height as needed */
+        width: 120px;
+      }
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        display: none;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .dialog-box {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Settings</h1>
+    </header>
+    <main>
+      <a href="/">Back to Home</a>
+      <h2>System Settings</h2>
+      <form id="settings-form">
+        <label for="status">Status:</label>
+        <select id="status" name="status">
+          <option value="停止">停止</option>
+          <option value="作業遅れ">作業遅れ</option>
+          <option value="呼び出し">呼び出し</option>
+          <option value="ポカヨケ">ポカヨケ</option>
+          <option value="締付異常">締付異常</option>
+          <option value="設備異常">設備異常</option>
+          <option value="目標値">目標値</option>
+        </select>
+        <button id="edit-button">Edit</button>
+        <div id="engineering-items">
+          <!-- Engineering items will be dynamically added here -->
+        </div>
+        <button type="submit" id="save-button">Save Changes</button>
+        <div class="overlay" id="overlay">
+          <div class="dialog-box" id="success-message">
+            Submit Access
+          </div>
+        </div>
+      </form>
+    </main>
+    <footer>
+      <p>&copy; 2024 Araco</p>
+    </footer>
+
+    <script>
+      var foundItems = [];
+      var Teishi_Name = [];
+      var Sagyou_Name = [];
+      var Yobidashi_Name = [];
+      var Pokayoke_Name = [];
+      var Shimetsu_Name = [];
+      var Setsubi_Name = [];
+      var Nedan_Name = [];
+      function showOverlay() {
+        const overlay = document.getElementById("overlay");
+        overlay.style.display = "flex";
+
+        setTimeout(() => {
+          overlay.style.display = "none";
+        }, 2000); // 2 giây
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        function processData(data) {
+          data.forEach(function (item) {
+            if (item.Status === "停止") {
+              Teishi_Name.push(item.Koutei_Name);
+            }
+            if (item.Status === "作業遅れ") {
+              Sagyou_Name.push(item.Koutei_Name);
+            }
+            if (item.Status === "呼び出し") {
+              Yobidashi_Name.push(item.Koutei_Name);
+            }
+            if (item.Status === "ポカヨケ") {
+              Pokayoke_Name.push(item.Koutei_Name);
+            }
+            if (item.Status === "締付異常") {
+              Shimetsu_Name.push(item.Koutei_Name);
+            }
+            if (item.Status === "設備異常") {
+              Setsubi_Name.push(item.Koutei_Name);
+            }
+            if (item.Status === "目標値") {
+              Nedan_Name.push(item.Koutei_Name);
+            }
+          });
+        }
+        function get_data() {
+          $.ajax({
+            url: "/api/Koutei/get_data",
+            type: "GET",
+            success: function (data) {
+              foundItems = data;
+              processData(foundItems);
+              const items = engineeringItems[statusSelect.value];
+              updateEngineeringItems(items);
+              renderNonEditableItems(items);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+              console.error("Error:", textStatus, errorThrown);
+            },
+          });
+        }
+        get_data();
+        const statusSelect = document.getElementById("status");
+        const engineeringItemsContainer = document.getElementById(
+          "engineering-items"
+        );
+        const form = document.getElementById("settings-form");
+        const successMessage = document.getElementById("success-message");
+        const editButton = document.getElementById("edit-button");
+        const engineeringItems = {
+          停止: Teishi_Name,
+          作業遅れ: Sagyou_Name,
+          呼び出し: Yobidashi_Name,
+          ポカヨケ: Pokayoke_Name,
+          締付異常: Shimetsu_Name,
+          設備異常: Setsubi_Name,
+          目標値: Nedan_Name,
+        };
+        function renderEditableItems(items) {
+          engineeringItemsContainer.innerHTML = "";
+          items.forEach((item, index) => {
+            const label = document.createElement("label");
+            if (statusSelect.value === "目標値") {
+              if (index == 0) {
+                label.textContent = `停止＿値：`;
+              } else if (index == 1) {
+                label.textContent = `作業遅れ＿値：`;
+              } else if (index == 2) {
+                label.textContent = `呼出＿値：`;
+              } else if (index == 3) {
+                label.textContent = `ポカヨケ＿値：`;
+              } else if (index == 4) {
+                label.textContent = `締付異常＿値：`;
+              } else if (index == 5) {
+                label.textContent = `設備異常＿値：`;
+              }
+            } else {
+              label.textContent = `${index + 1} 名：`;
+            }
+
+            const input = document.createElement("input");
+            input.type = "text";
+            input.value = item;
+
+            engineeringItemsContainer.appendChild(label);
+            engineeringItemsContainer.appendChild(input);
+          });
+        }
+
+        // Function to render the engineering items as non-editable text
+        function renderNonEditableItems(items) {
+          engineeringItemsContainer.innerHTML = "";
+          items.forEach((item, index) => {
+            const label = document.createElement("label");
+            if (statusSelect.value === "目標値") {
+              if (index == 0) {
+                label.textContent = `停止＿値：`;
+              } else if (index == 1) {
+                label.textContent = `作業遅れ＿値：`;
+              } else if (index == 2) {
+                label.textContent = `呼出＿値：`;
+              } else if (index == 3) {
+                label.textContent = `ポカヨケ＿値：`;
+              } else if (index == 4) {
+                label.textContent = `締付異常＿値：`;
+              } else if (index == 5) {
+                label.textContent = `設備異常＿値：`;
+              }
+            } else {
+              label.textContent = `${index + 1} 名：`;
+            }
+
+            const span = document.createElement("span");
+            span.textContent = item;
+
+            label.appendChild(span);
+            engineeringItemsContainer.appendChild(label);
+          });
+        }
+        // Initial rendering of engineering items as non-editable text
+        // Event listener for the Edit button
+        editButton.addEventListener("click", function () {
+          event.preventDefault();
+          renderEditableItems(engineeringItems[statusSelect.value]);
+        });
+        statusSelect.addEventListener("change", function () {
+          const selectedStatus = statusSelect.value;
+          const items = engineeringItems[selectedStatus];
+          updateEngineeringItems(items);
+          renderNonEditableItems(items);
+        });
+
+        if (form) {
+          form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+            await saveSettings(); // Chờ đợi hàm saveSettings hoàn tất
+            await showOverlay();
+            updateEngineeringItems(engineeringItems[statusSelect.value]);
+            renderNonEditableItems(engineeringItems[statusSelect.value]);
+          });
+        } else {
+          console.error("Form element not found");
+        }
+        function updateEngineeringItems(items) {
+          engineeringItemsContainer.innerHTML = "";
+
+          items.forEach((item, index) => {
+            const label = document.createElement("label");
+            label.textContent = `${index + 1} 名：`;
+
+            const input = document.createElement("input");
+            input.type = "text";
+            input.value = item;
+
+            engineeringItemsContainer.appendChild(label);
+            engineeringItemsContainer.appendChild(input);
+          });
+        }
+
+        async function saveSettings() {
+          const selectedStatus = statusSelect.value;
+          const inputs = engineeringItemsContainer.querySelectorAll(
+            "input[type='text']"
+          );
+          const updates = [];
+
+          inputs.forEach((input, index) => {
+            const item = {
+              id: foundItems[index].id,
+              Status: selectedStatus,
+              Koutei_Name: input.value,
+            };
+            updates.push(item);
+          });
+
+          console.log("Updates:", updates);
+
+          for (const update of updates) {
+            try {
+              const response = await $.ajax({
+                url: "/api/Koutei/update_data",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(update),
+              });
+              console.log(response);
+
+              // Cập nhật dữ liệu trên client sau khi thành công
+              const index = foundItems.findIndex(
+                (item) => item.id === update.id
+              );
+              if (index !== -1) {
+                foundItems[index].Koutei_Name = update.Koutei_Name;
+                engineeringItems[selectedStatus][index] = update.Koutei_Name;
+              }
+            } catch (error) {
+              console.error("Error updating data:", error);
+            }
+          }
+
+          console.log("Settings saved");
+          successMessage.style.display = "block";
+
+          setTimeout(() => {
+            successMessage.style.display = "none";
+          }, 3000);
+        }
+      });
+    </script>
+  </body>
+</html>
